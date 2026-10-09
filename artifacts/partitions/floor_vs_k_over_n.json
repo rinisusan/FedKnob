@@ -1,0 +1,154 @@
+{
+  "config": {
+    "draws": 600,
+    "seed": 42,
+    "global_distribution": "uniform",
+    "note": "corpus-independent; no data is read"
+  },
+  "named": [
+    {
+      "K": 10,
+      "n": 500,
+      "k_over_n": 0.02,
+      "floor": 0.0032,
+      "label": "CIFAR-10, Hsu et al. standard 100-client split"
+    },
+    {
+      "K": 10,
+      "n": 100,
+      "k_over_n": 0.1,
+      "floor": 0.0168,
+      "label": "CIFAR-10, 500 clients"
+    },
+    {
+      "K": 62,
+      "n": 100,
+      "k_over_n": 0.62,
+      "floor": 0.1485,
+      "label": "FEMNIST-like, 62 classes"
+    },
+    {
+      "K": 62,
+      "n": 124,
+      "k_over_n": 0.5,
+      "floor": 0.1155,
+      "label": "K/n = 0.50, the threshold"
+    },
+    {
+      "K": 60,
+      "n": 582,
+      "k_over_n": 0.1031,
+      "floor": 0.0191,
+      "label": "MASSIVE N=20"
+    },
+    {
+      "K": 60,
+      "n": 108,
+      "k_over_n": 0.5556,
+      "floor": 0.1311,
+      "label": "MASSIVE N=100"
+    },
+    {
+      "K": 60,
+      "n": 55,
+      "k_over_n": 1.0909,
+      "floor": 0.2615,
+      "label": "MASSIVE N=200"
+    },
+    {
+      "K": 60,
+      "n": 26,
+      "k_over_n": 2.3077,
+      "floor": 0.4494,
+      "label": "MASSIVE identity, >=10 utterances"
+    },
+    {
+      "K": 60,
+      "n": 12,
+      "k_over_n": 5.0,
+      "floor": 0.6366,
+      "label": "MASSIVE identity, all speakers"
+    }
+  ],
+  "grid": {
+    "10": {
+      "50": 0.036,
+      "100": 0.0168,
+      "250": 0.0065,
+      "500": 0.0032,
+      "1000": 0.0016
+    },
+    "20": {
+      "50": 0.0857,
+      "100": 0.0381,
+      "250": 0.0141,
+      "500": 0.007,
+      "1000": 0.0034
+    },
+    "60": {
+      "50": 0.2831,
+      "100": 0.1442,
+      "250": 0.0476,
+      "500": 0.0223,
+      "1000": 0.011
+    },
+    "100": {
+      "50": 0.4167,
+      "100": 0.2447,
+      "250": 0.0896,
+      "500": 0.0394,
+      "1000": 0.0187
+    },
+    "200": {
+      "50": 0.5875,
+      "100": 0.4148,
+      "250": 0.1963,
+      "500": 0.0899,
+      "1000": 0.0396
+    }
+  },
+  "scaling_check": [
+    {
+      "K": 10,
+      "n": 500,
+      "k_over_n": 0.02,
+      "simulated": 0.0032,
+      "asymptotic": 0.0032
+    },
+    {
+      "K": 20,
+      "n": 250,
+      "k_over_n": 0.08,
+      "simulated": 0.0142,
+      "asymptotic": 0.0137
+    },
+    {
+      "K": 60,
+      "n": 750,
+      "k_over_n": 0.08,
+      "simulated": 0.0147,
+      "asymptotic": 0.0142
+    },
+    {
+      "K": 100,
+      "n": 1250,
+      "k_over_n": 0.08,
+      "simulated": 0.0148,
+      "asymptotic": 0.0143
+    },
+    {
+      "K": 62,
+      "n": 100,
+      "k_over_n": 0.62,
+      "simulated": 0.1488,
+      "asymptotic": 0.11
+    },
+    {
+      "K": 60,
+      "n": 55,
+      "k_over_n": 1.0909,
+      "simulated": 0.2611,
+      "asymptotic": 0.1935
+    }
+  ]
+}

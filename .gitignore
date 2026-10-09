@@ -1,0 +1,47 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# experiment artifacts (state, runs, sweeps); keep metrics + model card, ignore large weights
+artifacts/baseline/model.safetensors
+artifacts/baseline/config.json
+artifacts/state/
+artifacts/runs/
+artifacts/sweeps/
+artifacts/tokenized/
+artifacts/fl_*.json
+*.pt
+
+# Week 3 household partition: KEEP the deterministic partition + its stats
+# (the frozen, byte-identical artifact the federated phases read from), but
+# ignore any transient files written into the same folder.
+# NOTE: .gitignore has no inline comments -- a '#' only starts a comment at the
+# START of a line. Never put explanatory text after a pattern on the same line.
+artifacts/partitions/*
+!artifacts/partitions/*.parquet
+!artifacts/partitions/*.json
+artifacts/partitions/*__verify.parquet
+
+# Week 2 LoRA adapter (artifacts/baseline/distilbert_lora_r8/):
+# ignore the adapter weights + PEFT config; KEEP lora_metrics.json,
+# MODEL_CARD.md, and README.md (filled-in model card) committed.
+artifacts/baseline/distilbert_lora_r8/adapter_model.safetensors
+artifacts/baseline/distilbert_lora_r8/adapter_config.json
+
+# raw MASSIVE tarball cache downloaded by fedknob.data.massive
+artifacts/massive_raw/
+
+# tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# experiment trackers
+wandb/
+
+# build
+build/
+dist/
+*.egg-info/

@@ -1,0 +1,21 @@
+{
+  "eval_loss": 0.44776251912117004,
+  "eval_accuracy": 0.8806321452589105,
+  "eval_balanced_accuracy": 0.8710785228549921,
+  "eval_f1_macro": 0.8580719015317922,
+  "eval_f1_weighted": 0.8806538372722114,
+  "eval_precision_macro": 0.8588558433031028,
+  "eval_recall_macro": 0.8710785228549921,
+  "eval_top5_accuracy": 0.980497646267653,
+  "eval_runtime": 1.4102,
+  "eval_samples_per_second": 2108.885,
+  "eval_steps_per_second": 33.328,
+  "trainable_parameter_report": {
+    "lora_adapter_params": 147456,
+    "classification_head_params": 636732,
+    "trainable_params": 784188,
+    "total_params": 67783800,
+    "pct_trainable": 1.1568958954794508,
+    "pct_lora_only": 0.21753870393810912
+  }
+}

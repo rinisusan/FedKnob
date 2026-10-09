@@ -1,0 +1,59 @@
+{
+  "config": {
+    "clients": [
+      20,
+      50,
+      100,
+      200
+    ],
+    "draws": 30,
+    "seed": 42,
+    "out": "D:\\SCU\\Research_Work\\Grants\\Amazon\\FedKnob\\Implementation\\FedKnob\\artifacts\\partitions\\calibrated_divergence.json"
+  },
+  "partitions": {
+    "20": {
+      "n_clients": 20,
+      "utts_median": 581.5,
+      "utts_min": 306,
+      "utts_max": 936,
+      "jsd_observed_mean": 0.0509,
+      "jsd_null_mean": 0.0243,
+      "ratio": 2.096,
+      "excess_absolute": 0.0266,
+      "null_share_of_raw": 0.477
+    },
+    "50": {
+      "n_clients": 50,
+      "utts_median": 217.5,
+      "utts_min": 101,
+      "utts_max": 395,
+      "jsd_observed_mean": 0.1185,
+      "jsd_null_mean": 0.0659,
+      "ratio": 1.799,
+      "excess_absolute": 0.0526,
+      "null_share_of_raw": 0.556
+    },
+    "100": {
+      "n_clients": 100,
+      "utts_median": 108.0,
+      "utts_min": 50,
+      "utts_max": 203,
+      "jsd_observed_mean": 0.2117,
+      "jsd_null_mean": 0.135,
+      "ratio": 1.569,
+      "excess_absolute": 0.0768,
+      "null_share_of_raw": 0.637
+    },
+    "200": {
+      "n_clients": 200,
+      "utts_median": 55.0,
+      "utts_min": 30,
+      "utts_max": 162,
+      "jsd_observed_mean": 0.3255,
+      "jsd_null_mean": 0.2243,
+      "ratio": 1.451,
+      "excess_absolute": 0.1012,
+      "null_share_of_raw": 0.689
+    }
+  }
+}

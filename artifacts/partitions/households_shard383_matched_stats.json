@@ -1,0 +1,18 @@
+{
+  "scheme": "sample_dirichlet_size_matched",
+  "source_partition": "artifacts/partitions/households_identity_min10.parquet",
+  "alpha": 1.0,
+  "seed": 42,
+  "n_clients": 383,
+  "total_utts": 10316,
+  "utts_min": 10,
+  "utts_median": 26.0,
+  "utts_max": 162,
+  "intents_median": 10.0,
+  "eff_intents_min": 1.0,
+  "eff_intents_median": 8.48,
+  "eff_intents_max": 34.78,
+  "atomic_ok": false,
+  "speakers_per_client_median": 25.0,
+  "single_intent_clients": 12
+}

@@ -1,0 +1,27 @@
+{
+  "config": {
+    "archive": "D:\\SCU\\Research_Work\\Grants\\Amazon\\FedKnob\\Implementation\\FedKnob\\artifacts\\massive_raw\\amazon-massive-dataset-1.0.tar.gz",
+    "locales": [
+      "en-US"
+    ],
+    "all": false,
+    "draws": 20,
+    "seed": 42,
+    "out": "D:\\SCU\\Research_Work\\Grants\\Amazon\\FedKnob\\Implementation\\FedKnob\\artifacts\\partitions\\owner_concentration.json"
+  },
+  "locales": {
+    "en-US": {
+      "n_rows": 16521,
+      "n_workers": 691,
+      "median_utts_per_worker": 16.0,
+      "min_utts_per_worker": 1,
+      "max_utts_per_worker": 228,
+      "n_intents": 60,
+      "median_observed_effective": 6.5216,
+      "median_null_effective": 12.3777,
+      "ratio_observed_over_null": 0.5269,
+      "median_of_per_worker_ratios": 0.5726,
+      "max_feasible_owner_atomic_N": 691
+    }
+  }
+}

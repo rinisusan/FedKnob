@@ -1,0 +1,29 @@
+# FedKnob - core dependencies
+#
+# IMPORTANT - GPU NOTE:
+# If you have an NVIDIA 50-series (Blackwell, e.g. RTX 5060) GPU, install a
+# recent PyTorch with CUDA 12.8+ (Blackwell is sm_120). If `verify_env.py`
+# shows "CUDA available: True" on a newer stack (torch 2.1x + cu128,
+# transformers 5.x, datasets 4.x), you are good.
+#
+# The baseline (full DistilBERT fine-tune) needs only the first block.
+transformers>=4.44.0
+datasets>=2.21.0
+accelerate>=0.33.0
+scikit-learn
+numpy
+
+# Needed for the federated phases (persistent per-client LoRA adapters):
+peft>=0.12.0
+
+# Week 3 non-IID partitioning: pandas + pyarrow write the deterministic
+# household partition (parquet); matplotlib renders the skew heatmap.
+pandas>=2.0
+pyarrow>=14.0
+matplotlib>=3.7
+
+# Optional, only for the Flower FL smoke test:
+# flwr>=1.11.0
+
+# Optional, only for QLoRA 4-bit on Linux GPU:
+# bitsandbytes>=0.43.3

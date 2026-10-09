@@ -1,0 +1,69 @@
+{
+  "config": {
+    "partition": "artifacts/partitions/households_100.parquet",
+    "n_clients": 100,
+    "fraction_fit": 1.0,
+    "rounds": 3,
+    "local_epochs": 1,
+    "lr": 0.0002,
+    "batch_size": 32,
+    "seed": 42,
+    "init": "proxy",
+    "mode": "ephemeral",
+    "eval_fraction": 0.0,
+    "freeze_pre_classifier": true
+  },
+  "init_provenance": {
+    "init": "proxy",
+    "checkpoint": "artifacts/baseline/distilbert_lora_r8_server_init",
+    "warm_started": true,
+    "checkpoint_provenance": {
+      "train_split": "validation",
+      "n_train": 2033,
+      "eval_split": "test",
+      "n_eval": 2974,
+      "saw_client_rows": false,
+      "freeze_pre_classifier": false,
+      "head_init_from": null,
+      "epochs": 25.0,
+      "lr": 0.0002,
+      "r": 8,
+      "seed": 42
+    },
+    "saw_client_rows": false
+  },
+  "expected_never_sampled_frac": 0.0,
+  "history": [
+    {
+      "round": 0,
+      "accuracy": 0.8288500336247479,
+      "n_correct": 2465,
+      "n_test": 2974,
+      "f1_macro": 0.7613499455574169
+    },
+    {
+      "round": 1,
+      "accuracy": 0.8275050437121722,
+      "n_correct": 2461,
+      "n_test": 2974,
+      "f1_macro": 0.7593115896709715
+    },
+    {
+      "round": 2,
+      "accuracy": 0.8264963012777404,
+      "n_correct": 2458,
+      "n_test": 2974,
+      "f1_macro": 0.7586625883013509
+    },
+    {
+      "round": 3,
+      "accuracy": 0.8264963012777404,
+      "n_correct": 2458,
+      "n_test": 2974,
+      "f1_macro": 0.7572055646720616
+    }
+  ],
+  "accuracy_first": 0.8288500336247479,
+  "accuracy_last": 0.8264963012777404,
+  "elapsed_sec": 106.4
+}

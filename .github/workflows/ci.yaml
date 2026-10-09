@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]  # Optional: limits pushes to main, or remove to run on all branches
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
+      # Install torch CPU-only in CI -- the GPU stack is verified locally.
+      - name: Install PyTorch (CPU)
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run Linter
+        run: ruff check src tests scripts
+
+      - name: Run Tests
+        run: pytest

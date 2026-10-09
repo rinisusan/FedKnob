@@ -1,0 +1,16 @@
+{
+  "scheme": "sample_dirichlet_size_matched",
+  "source_partition": "artifacts/partitions/households_identity_min10.parquet",
+  "alpha": 1.0,
+  "draws": 30,
+  "null_seed": 42,
+  "n_clients": 383,
+  "utts_median": 26.0,
+  "utts_min": 10,
+  "utts_max": 162,
+  "jsd_observed_mean": 0.5124,
+  "jsd_null_mean": 0.3865,
+  "ratio": 1.326,
+  "excess_absolute": 0.1259,
+  "null_share_of_raw": 0.754
+}

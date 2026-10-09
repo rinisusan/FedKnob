@@ -1,0 +1,39 @@
+{
+  "eval_loss": 0.671373188495636,
+  "eval_accuracy": 0.8291862811028917,
+  "eval_balanced_accuracy": 0.7556273707449835,
+  "eval_f1_macro": 0.7617516553214305,
+  "eval_f1_weighted": 0.8258221578110899,
+  "eval_precision_macro": 0.7776603053179557,
+  "eval_recall_macro": 0.7556273707449835,
+  "eval_top5_accuracy": 0.964694014794889,
+  "eval_runtime": 0.5192,
+  "eval_samples_per_second": 5727.916,
+  "eval_steps_per_second": 90.522,
+  "trainable_parameter_report": {
+    "lora_adapter_params": 147456,
+    "classification_head_params": 636732,
+    "trainable_params": 784188,
+    "total_params": 67783800,
+    "pct_trainable": 1.1568958954794508,
+    "pct_lora_only": 0.21753870393810912,
+    "pre_classifier_frozen": false,
+    "modules_to_save": [
+      "pre_classifier",
+      "classifier"
+    ]
+  },
+  "provenance": {
+    "train_split": "validation",
+    "n_train": 2033,
+    "eval_split": "test",
+    "n_eval": 2974,
+    "saw_client_rows": false,
+    "freeze_pre_classifier": false,
+    "head_init_from": null,
+    "epochs": 25.0,
+    "lr": 0.0002,
+    "r": 8,
+    "seed": 42
+  }
+}

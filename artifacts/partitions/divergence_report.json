@@ -1,0 +1,58 @@
+[
+  {
+    "file": "households_20.parquet",
+    "n_households": 20,
+    "n_intents": 60,
+    "utts_total": 11514,
+    "utts_per_hh_median": 581.5,
+    "eff_intents_median": 38.32,
+    "jsd_to_global_mean": 0.0509,
+    "jsd_to_global_median": 0.0436,
+    "jsd_to_global_max": 0.0994,
+    "jsd_pairwise_mean": 0.1002,
+    "jsd_pairwise_median": 0.0962,
+    "jsd_pairwise_p95": 0.1598
+  },
+  {
+    "file": "households_50.parquet",
+    "n_households": 50,
+    "n_intents": 60,
+    "utts_total": 11514,
+    "utts_per_hh_median": 217.5,
+    "eff_intents_median": 33.07,
+    "jsd_to_global_mean": 0.1185,
+    "jsd_to_global_median": 0.1048,
+    "jsd_to_global_max": 0.2742,
+    "jsd_pairwise_mean": 0.2149,
+    "jsd_pairwise_median": 0.2069,
+    "jsd_pairwise_p95": 0.3526
+  },
+  {
+    "file": "households_100.parquet",
+    "n_households": 100,
+    "n_intents": 60,
+    "utts_total": 11514,
+    "utts_per_hh_median": 108.0,
+    "eff_intents_median": 26.16,
+    "jsd_to_global_mean": 0.2117,
+    "jsd_to_global_median": 0.2031,
+    "jsd_to_global_max": 0.4349,
+    "jsd_pairwise_mean": 0.3537,
+    "jsd_pairwise_median": 0.3478,
+    "jsd_pairwise_p95": 0.5341
+  },
+  {
+    "file": "households_200.parquet",
+    "n_households": 200,
+    "n_intents": 60,
+    "utts_total": 11514,
+    "utts_per_hh_median": 55.0,
+    "eff_intents_median": 18.72,
+    "jsd_to_global_mean": 0.3255,
+    "jsd_to_global_median": 0.318,
+    "jsd_to_global_max": 0.5435,
+    "jsd_pairwise_mean": 0.5004,
+    "jsd_pairwise_median": 0.4955,
+    "jsd_pairwise_p95": 0.6892
+  }
+]

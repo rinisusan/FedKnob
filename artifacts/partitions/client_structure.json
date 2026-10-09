@@ -1,0 +1,210 @@
+{
+  "n_intents": 60,
+  "n_rows": 10316,
+  "arms": {
+    "natural383": {
+      "n_clients": 383,
+      "unweighted": {
+        "common_mode_energy": 9.926846330872001e-05,
+        "total_energy": 0.088275382565083,
+        "common_mode_fraction": 0.0011245316692400865,
+        "mean_pairwise_cosine": -0.0023439588028720147,
+        "dbar_l1": 0.05622288445661054
+      },
+      "fedavg_weighted": {
+        "common_mode_energy": 2.345211458043384e-34,
+        "total_energy": 0.068133549455252,
+        "common_mode_fraction": 3.442080262651876e-33,
+        "mean_pairwise_cosine": -0.0023439588028720147,
+        "dbar_l1": 7.830110207272681e-17
+      },
+      "co_occurrence": {
+        "pairs_scored": 1344,
+        "log2_lift_sd": 0.36547641215445703,
+        "log2_lift_p05": -0.4394398283157667,
+        "log2_lift_p95": 0.6720558431050071,
+        "frac_pairs_2x_enriched": 0.01488095238095238,
+        "frac_pairs_2x_depleted": 0.00818452380952381,
+        "mean_intents_per_client": 12.879895561357703
+      },
+      "top_enriched_pairs": [
+        {
+          "a": "play_audiobook",
+          "b": "play_game",
+          "lift": 4.01
+        },
+        {
+          "a": "play_game",
+          "b": "qa_stock",
+          "lift": 3.97
+        },
+        {
+          "a": "play_audiobook",
+          "b": "qa_stock",
+          "lift": 3.76
+        },
+        {
+          "a": "audio_volume_down",
+          "b": "audio_volume_up",
+          "lift": 3.5
+        },
+        {
+          "a": "play_game",
+          "b": "qa_currency",
+          "lift": 2.7
+        },
+        {
+          "a": "qa_currency",
+          "b": "qa_stock",
+          "lift": 2.63
+        },
+        {
+          "a": "play_audiobook",
+          "b": "qa_currency",
+          "lift": 2.58
+        },
+        {
+          "a": "play_audiobook",
+          "b": "social_post",
+          "lift": 2.39
+        }
+      ]
+    },
+    "shardm383": {
+      "n_clients": 383,
+      "unweighted": {
+        "common_mode_energy": 0.004866006287164187,
+        "total_energy": 0.1675003666176121,
+        "common_mode_fraction": 0.02905072021885678,
+        "mean_pairwise_cosine": 0.0018708880591626286,
+        "dbar_l1": 0.3117376364995279
+      },
+      "fedavg_weighted": {
+        "common_mode_energy": 5.365165595458821e-33,
+        "total_energy": 0.11323131173781667,
+        "common_mode_fraction": 4.738234957377941e-32,
+        "mean_pairwise_cosine": 0.0018708880591626286,
+        "dbar_l1": 2.9656201082237316e-16
+      },
+      "co_occurrence": {
+        "pairs_scored": 1184,
+        "log2_lift_sd": 0.6315536842333304,
+        "log2_lift_p05": -0.38571006754356496,
+        "log2_lift_p95": 1.5608098010589586,
+        "frac_pairs_2x_enriched": 0.28885135135135137,
+        "frac_pairs_2x_depleted": 0.0016891891891891893,
+        "mean_intents_per_client": 12.274151436031332
+      },
+      "top_enriched_pairs": [
+        {
+          "a": "music_likeness",
+          "b": "qa_maths",
+          "lift": 4.53
+        },
+        {
+          "a": "email_querycontact",
+          "b": "qa_maths",
+          "lift": 3.9
+        },
+        {
+          "a": "alarm_query",
+          "b": "audio_volume_up",
+          "lift": 3.79
+        },
+        {
+          "a": "audio_volume_up",
+          "b": "music_likeness",
+          "lift": 3.76
+        },
+        {
+          "a": "music_likeness",
+          "b": "transport_taxi",
+          "lift": 3.69
+        },
+        {
+          "a": "alarm_query",
+          "b": "transport_traffic",
+          "lift": 3.66
+        },
+        {
+          "a": "transport_taxi",
+          "b": "transport_traffic",
+          "lift": 3.66
+        },
+        {
+          "a": "alarm_query",
+          "b": "email_querycontact",
+          "lift": 3.58
+        }
+      ]
+    },
+    "shard383": {
+      "n_clients": 383,
+      "unweighted": {
+        "common_mode_energy": 0.004549238980409943,
+        "total_energy": 0.20380701374488486,
+        "common_mode_fraction": 0.022321307283882028,
+        "mean_pairwise_cosine": 0.0013706686266935927,
+        "dbar_l1": 0.3081284196467499
+      },
+      "fedavg_weighted": {
+        "common_mode_energy": 2.9310391604562524e-33,
+        "total_energy": 0.14386630377051396,
+        "common_mode_fraction": 2.0373354174245366e-32,
+        "mean_pairwise_cosine": 0.0013706686266935927,
+        "dbar_l1": 3.095521081014651e-16
+      },
+      "co_occurrence": {
+        "pairs_scored": 1018,
+        "log2_lift_sd": 0.6234673419514319,
+        "log2_lift_p05": -0.44863380772784306,
+        "log2_lift_p95": 1.458470673814882,
+        "frac_pairs_2x_enriched": 0.2504911591355599,
+        "frac_pairs_2x_depleted": 0.0019646365422396855,
+        "mean_intents_per_client": 10.467362924281984
+      },
+      "top_enriched_pairs": [
+        {
+          "a": "audio_volume_mute",
+          "b": "audio_volume_up",
+          "lift": 3.99
+        },
+        {
+          "a": "audio_volume_mute",
+          "b": "transport_traffic",
+          "lift": 3.85
+        },
+        {
+          "a": "takeaway_query",
+          "b": "transport_ticket",
+          "lift": 3.78
+        },
+        {
+          "a": "audio_volume_mute",
+          "b": "social_query",
+          "lift": 3.59
+        },
+        {
+          "a": "email_querycontact",
+          "b": "transport_ticket",
+          "lift": 3.44
+        },
+        {
+          "a": "alarm_set",
+          "b": "music_likeness",
+          "lift": 3.26
+        },
+        {
+          "a": "alarm_query",
+          "b": "takeaway_order",
+          "lift": 3.22
+        },
+        {
+          "a": "audio_volume_mute",
+          "b": "email_querycontact",
+          "lift": 3.21
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,572 @@
+{
+  "config": {
+    "locale": "en-US",
+    "partition": "train",
+    "alpha": 0.5,
+    "households": [
+      20,
+      50,
+      100,
+      200
+    ],
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "rule": "first",
+    "size_bands": {
+      "20": [
+        300,
+        1200
+      ],
+      "50": [
+        100,
+        500
+      ],
+      "100": [
+        50,
+        300
+      ],
+      "200": [
+        30,
+        300
+      ]
+    }
+  },
+  "runs": [
+    {
+      "n_households": 20,
+      "seed": 42,
+      "alpha": 0.5,
+      "min_utts_band": 300,
+      "max_utts_band": 1200,
+      "jsd_to_global_mean": 0.05089498901178426,
+      "jsd_to_global_median": 0.04364798879105558,
+      "jsd_pairwise_mean": 0.10024366589555452,
+      "jsd_pairwise_median": 0.09622900388837227,
+      "eff_intents_median": 38.321628052294194,
+      "utts_min": 306,
+      "utts_median": 581,
+      "utts_max": 936
+    },
+    {
+      "n_households": 20,
+      "seed": 43,
+      "alpha": 0.5,
+      "min_utts_band": 300,
+      "max_utts_band": 1200,
+      "jsd_to_global_mean": 0.049700742823165334,
+      "jsd_to_global_median": 0.04372489209651277,
+      "jsd_pairwise_mean": 0.09841616683058879,
+      "jsd_pairwise_median": 0.09459160854098135,
+      "eff_intents_median": 37.625726262479944,
+      "utts_min": 321,
+      "utts_median": 567,
+      "utts_max": 989
+    },
+    {
+      "n_households": 20,
+      "seed": 44,
+      "alpha": 0.5,
+      "min_utts_band": 300,
+      "max_utts_band": 1200,
+      "jsd_to_global_mean": 0.05203655303181852,
+      "jsd_to_global_median": 0.04966839009908433,
+      "jsd_pairwise_mean": 0.10316226665979665,
+      "jsd_pairwise_median": 0.09728757686454437,
+      "eff_intents_median": 37.773256755552616,
+      "utts_min": 300,
+      "utts_median": 621,
+      "utts_max": 848
+    },
+    {
+      "n_households": 20,
+      "seed": 45,
+      "alpha": 0.5,
+      "min_utts_band": 300,
+      "max_utts_band": 1200,
+      "jsd_to_global_mean": 0.046557963121794346,
+      "jsd_to_global_median": 0.051039379846634696,
+      "jsd_pairwise_mean": 0.092478317548655,
+      "jsd_pairwise_median": 0.09174393199182758,
+      "eff_intents_median": 37.72116637884167,
+      "utts_min": 372,
+      "utts_median": 507,
+      "utts_max": 1194
+    },
+    {
+      "n_households": 20,
+      "seed": 46,
+      "alpha": 0.5,
+      "min_utts_band": 300,
+      "max_utts_band": 1200,
+      "jsd_to_global_mean": 0.04994878388523868,
+      "jsd_to_global_median": 0.05032079049528865,
+      "jsd_pairwise_mean": 0.09913424494292239,
+      "jsd_pairwise_median": 0.09613151128509924,
+      "eff_intents_median": 38.807062500309954,
+      "utts_min": 304,
+      "utts_median": 537,
+      "utts_max": 1198
+    },
+    {
+      "n_households": 50,
+      "seed": 42,
+      "alpha": 0.5,
+      "min_utts_band": 100,
+      "max_utts_band": 500,
+      "jsd_to_global_mean": 0.11848245833091955,
+      "jsd_to_global_median": 0.10483276934026867,
+      "jsd_pairwise_mean": 0.21494507382530925,
+      "jsd_pairwise_median": 0.20688086894464447,
+      "eff_intents_median": 33.06720112695307,
+      "utts_min": 101,
+      "utts_median": 217,
+      "utts_max": 395
+    },
+    {
+      "n_households": 50,
+      "seed": 43,
+      "alpha": 0.5,
+      "min_utts_band": 100,
+      "max_utts_band": 500,
+      "jsd_to_global_mean": 0.11418602356642688,
+      "jsd_to_global_median": 0.11517985900816682,
+      "jsd_pairwise_mean": 0.20721445671450617,
+      "jsd_pairwise_median": 0.20445651521158495,
+      "eff_intents_median": 32.46272903855504,
+      "utts_min": 135,
+      "utts_median": 198,
+      "utts_max": 492
+    },
+    {
+      "n_households": 50,
+      "seed": 44,
+      "alpha": 0.5,
+      "min_utts_band": 100,
+      "max_utts_band": 500,
+      "jsd_to_global_mean": 0.12017704594886018,
+      "jsd_to_global_median": 0.11221428953940651,
+      "jsd_pairwise_mean": 0.2160507517850797,
+      "jsd_pairwise_median": 0.2116013356964742,
+      "eff_intents_median": 32.34086547309539,
+      "utts_min": 103,
+      "utts_median": 194,
+      "utts_max": 487
+    },
+    {
+      "n_households": 50,
+      "seed": 45,
+      "alpha": 0.5,
+      "min_utts_band": 100,
+      "max_utts_band": 500,
+      "jsd_to_global_mean": 0.11594888927281355,
+      "jsd_to_global_median": 0.11064184291964456,
+      "jsd_pairwise_mean": 0.20962735671944538,
+      "jsd_pairwise_median": 0.20044456996273408,
+      "eff_intents_median": 34.01296703619752,
+      "utts_min": 102,
+      "utts_median": 213,
+      "utts_max": 409
+    },
+    {
+      "n_households": 50,
+      "seed": 46,
+      "alpha": 0.5,
+      "min_utts_band": 100,
+      "max_utts_band": 500,
+      "jsd_to_global_mean": 0.11993141099562273,
+      "jsd_to_global_median": 0.10877108637696895,
+      "jsd_pairwise_mean": 0.2170527926105583,
+      "jsd_pairwise_median": 0.20755552689747894,
+      "eff_intents_median": 32.97880934693731,
+      "utts_min": 103,
+      "utts_median": 215,
+      "utts_max": 495
+    },
+    {
+      "n_households": 100,
+      "seed": 42,
+      "alpha": 0.5,
+      "min_utts_band": 50,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.2117449434257488,
+      "jsd_to_global_median": 0.20309230982625406,
+      "jsd_pairwise_mean": 0.35366243244559764,
+      "jsd_pairwise_median": 0.34781178974675325,
+      "eff_intents_median": 26.162768801999558,
+      "utts_min": 50,
+      "utts_median": 108,
+      "utts_max": 203
+    },
+    {
+      "n_households": 100,
+      "seed": 43,
+      "alpha": 0.5,
+      "min_utts_band": 50,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.20861072307749187,
+      "jsd_to_global_median": 0.19827147216221397,
+      "jsd_pairwise_mean": 0.34998175931192804,
+      "jsd_pairwise_median": 0.33978926780368696,
+      "eff_intents_median": 26.10480098481257,
+      "utts_min": 51,
+      "utts_median": 103,
+      "utts_max": 214
+    },
+    {
+      "n_households": 100,
+      "seed": 44,
+      "alpha": 0.5,
+      "min_utts_band": 50,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.20842958432810557,
+      "jsd_to_global_median": 0.2098400619230042,
+      "jsd_pairwise_mean": 0.34801231900072194,
+      "jsd_pairwise_median": 0.34184690232386405,
+      "eff_intents_median": 25.800080251264085,
+      "utts_min": 50,
+      "utts_median": 105,
+      "utts_max": 223
+    },
+    {
+      "n_households": 100,
+      "seed": 45,
+      "alpha": 0.5,
+      "min_utts_band": 50,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.20560424185374884,
+      "jsd_to_global_median": 0.20202480822198177,
+      "jsd_pairwise_mean": 0.3441892688860147,
+      "jsd_pairwise_median": 0.3361049816328032,
+      "eff_intents_median": 26.593770588569043,
+      "utts_min": 50,
+      "utts_median": 105,
+      "utts_max": 215
+    },
+    {
+      "n_households": 100,
+      "seed": 46,
+      "alpha": 0.5,
+      "min_utts_band": 50,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.20563074061592468,
+      "jsd_to_global_median": 0.19409108416928325,
+      "jsd_pairwise_mean": 0.3434717164413523,
+      "jsd_pairwise_median": 0.33480939998592507,
+      "eff_intents_median": 26.2870642560233,
+      "utts_min": 50,
+      "utts_median": 105,
+      "utts_max": 198
+    },
+    {
+      "n_households": 200,
+      "seed": 42,
+      "alpha": 0.5,
+      "min_utts_band": 30,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.3255381690353694,
+      "jsd_to_global_median": 0.3180022777907291,
+      "jsd_pairwise_mean": 0.5004367000796653,
+      "jsd_pairwise_median": 0.4955226877714517,
+      "eff_intents_median": 18.724223667164807,
+      "utts_min": 30,
+      "utts_median": 55,
+      "utts_max": 162
+    },
+    {
+      "n_households": 200,
+      "seed": 43,
+      "alpha": 0.5,
+      "min_utts_band": 30,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.3260812705858126,
+      "jsd_to_global_median": 0.3166122003191609,
+      "jsd_pairwise_mean": 0.5018836950563444,
+      "jsd_pairwise_median": 0.49505398477967133,
+      "eff_intents_median": 18.638371955830422,
+      "utts_min": 30,
+      "utts_median": 54,
+      "utts_max": 162
+    },
+    {
+      "n_households": 200,
+      "seed": 44,
+      "alpha": 0.5,
+      "min_utts_band": 30,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.3251987485640744,
+      "jsd_to_global_median": 0.31643743385247897,
+      "jsd_pairwise_mean": 0.5007121885327868,
+      "jsd_pairwise_median": 0.4958552422226611,
+      "eff_intents_median": 18.721588461624577,
+      "utts_min": 30,
+      "utts_median": 55,
+      "utts_max": 162
+    },
+    {
+      "n_households": 200,
+      "seed": 45,
+      "alpha": 0.5,
+      "min_utts_band": 30,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.3213486655032547,
+      "jsd_to_global_median": 0.31069270621749867,
+      "jsd_pairwise_mean": 0.49447174547778155,
+      "jsd_pairwise_median": 0.4893468343448899,
+      "eff_intents_median": 19.36270666094888,
+      "utts_min": 30,
+      "utts_median": 56,
+      "utts_max": 162
+    },
+    {
+      "n_households": 200,
+      "seed": 46,
+      "alpha": 0.5,
+      "min_utts_band": 30,
+      "max_utts_band": 300,
+      "jsd_to_global_mean": 0.3232921479166395,
+      "jsd_to_global_median": 0.3259647872165796,
+      "jsd_pairwise_mean": 0.49610687448937274,
+      "jsd_pairwise_median": 0.4907771094484482,
+      "eff_intents_median": 18.305279598823603,
+      "utts_min": 30,
+      "utts_median": 55,
+      "utts_max": 162
+    }
+  ],
+  "aggregate": [
+    {
+      "n_households": 20,
+      "n_seeds": 5,
+      "seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "jsd_to_global_mean": {
+        "mean": 0.0498,
+        "sd": 0.002,
+        "min": 0.0466,
+        "max": 0.052,
+        "cv": 0.0411
+      },
+      "jsd_pairwise_mean": {
+        "mean": 0.0987,
+        "sd": 0.0039,
+        "min": 0.0925,
+        "max": 0.1032,
+        "cv": 0.0397
+      },
+      "eff_intents_median": {
+        "mean": 38.0498,
+        "sd": 0.5029,
+        "min": 37.6257,
+        "max": 38.8071,
+        "cv": 0.0132
+      },
+      "utts_median": {
+        "mean": 562.6,
+        "sd": 43.3451,
+        "min": 507.0,
+        "max": 621.0,
+        "cv": 0.077
+      }
+    },
+    {
+      "n_households": 50,
+      "n_seeds": 5,
+      "seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "jsd_to_global_mean": {
+        "mean": 0.1177,
+        "sd": 0.0026,
+        "min": 0.1142,
+        "max": 0.1202,
+        "cv": 0.0221
+      },
+      "jsd_pairwise_mean": {
+        "mean": 0.213,
+        "sd": 0.0043,
+        "min": 0.2072,
+        "max": 0.2171,
+        "cv": 0.0202
+      },
+      "eff_intents_median": {
+        "mean": 32.9725,
+        "sd": 0.6615,
+        "min": 32.3409,
+        "max": 34.013,
+        "cv": 0.0201
+      },
+      "utts_median": {
+        "mean": 207.4,
+        "sd": 10.5972,
+        "min": 194.0,
+        "max": 217.0,
+        "cv": 0.0511
+      }
+    },
+    {
+      "n_households": 100,
+      "n_seeds": 5,
+      "seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "jsd_to_global_mean": {
+        "mean": 0.208,
+        "sd": 0.0025,
+        "min": 0.2056,
+        "max": 0.2117,
+        "cv": 0.0122
+      },
+      "jsd_pairwise_mean": {
+        "mean": 0.3479,
+        "sd": 0.0042,
+        "min": 0.3435,
+        "max": 0.3537,
+        "cv": 0.0121
+      },
+      "eff_intents_median": {
+        "mean": 26.1897,
+        "sd": 0.2883,
+        "min": 25.8001,
+        "max": 26.5938,
+        "cv": 0.011
+      },
+      "utts_median": {
+        "mean": 105.2,
+        "sd": 1.7889,
+        "min": 103.0,
+        "max": 108.0,
+        "cv": 0.017
+      }
+    },
+    {
+      "n_households": 200,
+      "n_seeds": 5,
+      "seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "jsd_to_global_mean": {
+        "mean": 0.3243,
+        "sd": 0.002,
+        "min": 0.3213,
+        "max": 0.3261,
+        "cv": 0.006
+      },
+      "jsd_pairwise_mean": {
+        "mean": 0.4987,
+        "sd": 0.0032,
+        "min": 0.4945,
+        "max": 0.5019,
+        "cv": 0.0065
+      },
+      "eff_intents_median": {
+        "mean": 18.7504,
+        "sd": 0.3831,
+        "min": 18.3053,
+        "max": 19.3627,
+        "cv": 0.0204
+      },
+      "utts_median": {
+        "mean": 55.0,
+        "sd": 0.7071,
+        "min": 54.0,
+        "max": 56.0,
+        "cv": 0.0129
+      }
+    }
+  ],
+  "separation": [
+    {
+      "pair": "20 vs 50",
+      "gap": 0.0679,
+      "pooled_sd": 0.0023,
+      "separation": 29.3,
+      "resolved": true
+    },
+    {
+      "pair": "50 vs 100",
+      "gap": 0.0903,
+      "pooled_sd": 0.0026,
+      "separation": 35.4,
+      "resolved": true
+    },
+    {
+      "pair": "100 vs 200",
+      "gap": 0.1163,
+      "pooled_sd": 0.0023,
+      "separation": 51.4,
+      "resolved": true
+    }
+  ],
+  "scaling_refit": {
+    "fits": [
+      {
+        "seed": 42,
+        "intercept": -0.0794,
+        "slope": 0.7496,
+        "r2": 0.9989
+      },
+      {
+        "seed": 43,
+        "intercept": -0.0836,
+        "slope": 0.7561,
+        "r2": 0.9984
+      },
+      {
+        "seed": 44,
+        "intercept": -0.0773,
+        "slope": 0.7428,
+        "r2": 0.9995
+      },
+      {
+        "seed": 45,
+        "intercept": -0.0829,
+        "slope": 0.7474,
+        "r2": 0.9995
+      },
+      {
+        "seed": 46,
+        "intercept": -0.0785,
+        "slope": 0.7411,
+        "r2": 0.9998
+      }
+    ],
+    "slope_mean": 0.7474,
+    "slope_sd": 0.0059,
+    "intercept_mean": -0.0803,
+    "r2_min": 0.9984
+  },
+  "self_check": [
+    "PASS   20 households: sweep=0.0509  committed=0.0509",
+    "PASS   50 households: sweep=0.1185  committed=0.1185",
+    "PASS  100 households: sweep=0.2117  committed=0.2117",
+    "PASS  200 households: sweep=0.3255  committed=0.3255"
+  ],
+  "canonical_seed_by_household_count": {
+    "20": 42,
+    "50": 42,
+    "100": 42,
+    "200": 42
+  }
+}

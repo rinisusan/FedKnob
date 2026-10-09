@@ -1,0 +1,23 @@
+{
+  "num_households": 100,
+  "alpha": 0.5,
+  "seed": 42,
+  "total_utts": 11514,
+  "utts_min": 50,
+  "utts_median": 108,
+  "utts_max": 203,
+  "intents_min": 20,
+  "intents_median": 33,
+  "intents_max": 48,
+  "eff_intents_min": 15.8,
+  "eff_intents_median": 26.16,
+  "eff_intents_max": 37.88,
+  "size_ok": true,
+  "intents_ok": false,
+  "eff_intents_ok": false,
+  "coverage_ok": true,
+  "atomic_ok": true,
+  "n_size_violations": 0,
+  "n_intent_violations": 96,
+  "n_eff_intent_violations": 79
+}

@@ -1,0 +1,22 @@
+{
+  "scheme": "speaker_identity",
+  "min_utts": 10,
+  "seed": null,
+  "alpha": null,
+  "n_clients": 383,
+  "n_speakers_total": 682,
+  "n_speakers_excluded": 299,
+  "total_utts": 10316,
+  "corpus_utts": 11514,
+  "corpus_fraction": 0.896,
+  "utts_min": 10,
+  "utts_median": 26.0,
+  "utts_max": 162,
+  "clients_under_5_utts": 0,
+  "clients_under_10_utts": 0,
+  "intents_median": 13.0,
+  "eff_intents_min": 2.8,
+  "eff_intents_median": 11.42,
+  "eff_intents_max": 30.0,
+  "atomic_ok": true
+}

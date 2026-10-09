@@ -1,0 +1,50 @@
+{
+  "config": {
+    "partition": "artifacts/partitions/households_100.parquet",
+    "n_clients": 100,
+    "fraction_fit": 1.0,
+    "rounds": 3,
+    "local_epochs": 1,
+    "lr": 0.0002,
+    "batch_size": 32,
+    "seed": 42,
+    "init": "week2",
+    "mode": "ephemeral",
+    "eval_fraction": 0.0,
+    "freeze_pre_classifier": true
+  },
+  "expected_never_sampled_frac": 0.0,
+  "history": [
+    {
+      "round": 0,
+      "accuracy": 0.8806321452589105,
+      "n_correct": 2619,
+      "n_test": 2974,
+      "f1_macro": 0.8580719015317922
+    },
+    {
+      "round": 1,
+      "accuracy": 0.8809683927370545,
+      "n_correct": 2620,
+      "n_test": 2974,
+      "f1_macro": 0.8619872484019045
+    },
+    {
+      "round": 2,
+      "accuracy": 0.8799596503026227,
+      "n_correct": 2617,
+      "n_test": 2974,
+      "f1_macro": 0.8603935511730645
+    },
+    {
+      "round": 3,
+      "accuracy": 0.8799596503026227,
+      "n_correct": 2617,
+      "n_test": 2974,
+      "f1_macro": 0.8603109002230067
+    }
+  ],
+  "accuracy_first": 0.8806321452589105,
+  "accuracy_last": 0.8799596503026227,
+  "elapsed_sec": 110.5
+}

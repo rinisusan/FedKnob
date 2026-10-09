@@ -1,0 +1,60 @@
+{
+  "source_partition": "artifacts/partitions/households_identity_min10.parquet",
+  "draws": 30,
+  "null_seed": 42,
+  "seed": 42,
+  "natural": {
+    "excess_absolute": 0.1145,
+    "eff_intents_median": 11.42
+  },
+  "sweep": [
+    {
+      "alpha": 0.5,
+      "eff_intents_median": 7.01,
+      "jsd_observed_mean": 0.5607,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.1742,
+      "ratio": 1.451
+    },
+    {
+      "alpha": 1.0,
+      "eff_intents_median": 8.48,
+      "jsd_observed_mean": 0.5124,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.1259,
+      "ratio": 1.326
+    },
+    {
+      "alpha": 1.5,
+      "eff_intents_median": 9.42,
+      "jsd_observed_mean": 0.4847,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.0982,
+      "ratio": 1.254
+    },
+    {
+      "alpha": 2.0,
+      "eff_intents_median": 9.24,
+      "jsd_observed_mean": 0.4745,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.088,
+      "ratio": 1.228
+    },
+    {
+      "alpha": 3.0,
+      "eff_intents_median": 10.73,
+      "jsd_observed_mean": 0.4605,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.0739,
+      "ratio": 1.191
+    },
+    {
+      "alpha": 5.0,
+      "eff_intents_median": 10.72,
+      "jsd_observed_mean": 0.4487,
+      "jsd_null_mean": 0.3865,
+      "excess_absolute": 0.0622,
+      "ratio": 1.161
+    }
+  ]
+}
