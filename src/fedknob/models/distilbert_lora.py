@@ -1,11 +1,11 @@
-"""DistilBERT + LoRA builder for the Week 2 baseline and the federated phases.
+"""DistilBERT + LoRA builder for the centralized baseline and the federated phases.
 
 Wraps the same `distilbert-base-uncased` sequence classifier used by the full
 fine-tune baseline (distilbert_classifier.py) with PEFT LoRA adapters. This is
 the per-client adapter recipe the federated phases persist across rounds, so
 the recipe is defined ONCE here and imported everywhere.
 
-Week 2 recipe (from the proposal):
+LoRA recipe:
     rank r=8, alpha=16, dropout=0.05
     target_modules = ["q_lin", "v_lin"]   (attention query/value projections)
 
@@ -18,10 +18,10 @@ adapter feasible:
 
 TWO HEAD REGIMES
 ----------------
-``freeze_pre_classifier=False`` (Week 1/2 default, reproduces the 88.06% baseline)
+``freeze_pre_classifier=False`` (default, reproduces the 88.06% baseline)
     trainable = 147,456 + 590,592 + 46,140 = 784,188
 
-``freeze_pre_classifier=True``  (federated phases, Week 4 onward)
+``freeze_pre_classifier=True``  (federated phases)
     trainable = 147,456 + 46,140 = 193,596
 
 `pre_classifier` is NEWLY INITIALISED by ``from_pretrained(num_labels=...)`` --
@@ -33,9 +33,9 @@ checkpoint FIRST and frozen second, which is what ``head_init_from`` does.
 Why freeze at all: in the federated phases `classifier` is global (aggregated)
 and only LoRA ``B`` is persisted per client. Freezing `pre_classifier` leaves
 LoRA ``B`` -- 73,728 parameters -- as the *sole* per-client persistent state, so
-any backdoor residue observed after an attacker departs is attributable to the
-adapter and to nothing else. A trainable `pre_classifier` would add 590,592
-moving parameters and a second channel a reviewer could point at.
+whatever a client retains between rounds is attributable to the adapter and to
+nothing else. A trainable `pre_classifier` would add 590,592 moving parameters
+and a second channel a reviewer could point at.
 
 Note on ``modules_to_save``: PEFT auto-appends the classification head for
 ``TaskType.SEQ_CLS`` (and speculatively "score", which DistilBERT does not have).
@@ -49,7 +49,7 @@ from pathlib import Path
 
 MODEL_NAME = "distilbert-base-uncased"
 
-# Week 2 LoRA recipe -- single source of truth for the federated phases too.
+# LoRA recipe -- single source of truth for the federated phases too.
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
@@ -69,7 +69,7 @@ EXPECTED_TRAINABLE = 784_188  # freeze_pre_classifier=False
 EXPECTED_TRAINABLE_FROZEN_PRE = 193_596  # freeze_pre_classifier=True
 EXPECTED_LORA_PARAMS = 147_456
 
-#: Week 2 adapter directory, the default source of trained head weights.
+#: Adapter directory, the default source of trained head weights.
 DEFAULT_HEAD_CHECKPOINT = "artifacts/baseline/distilbert_lora_r8"
 
 _HEAD_TENSORS = (
@@ -106,7 +106,7 @@ def _dedupe_modules_to_save(model) -> list[str]:
 def _load_head_weights(base, checkpoint_dir: Path, tensors=_HEAD_TENSORS) -> None:
     """Copy trained head tensors from a saved PEFT adapter into ``base``.
 
-    The Week 2 adapter stores them as ``base_model.model.<name>``. Raises if a
+    The saved adapter stores them as ``base_model.model.<name>``. Raises if a
     tensor is absent or mis-shaped -- a silently skipped load would leave random
     weights frozen in the forward path, which is the exact failure this function
     exists to prevent.
@@ -168,13 +168,13 @@ def build_lora_model(
     Parameters
     ----------
     freeze_pre_classifier:
-        ``False`` (default) reproduces the Week 1/2 recipe: both head modules
+        ``False`` (default) reproduces the centralized recipe: both head modules
         trainable, 784,188 trainable parameters.
         ``True`` is the federated recipe: `pre_classifier` is initialised from
         ``head_init_from`` and frozen, leaving 193,596 trainable parameters.
     head_init_from:
         Directory of a saved PEFT adapter to take `pre_classifier` weights from.
-        Required when ``freeze_pre_classifier=True``; defaults to the Week 2
+        Required when ``freeze_pre_classifier=True``; defaults to the saved
         adapter. Ignored otherwise.
     verify_trainable:
         Assert the trainable-parameter count matches the pinned constant. Leave

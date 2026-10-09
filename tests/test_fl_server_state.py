@@ -9,8 +9,8 @@ so ``evaluate(r)`` follows ``fit(r)`` and must record ``fit(r)``'s clients. Roun
 0 precedes every fit and must record none.
 
 Why this is worth a test rather than a careful read: the whole persistence claim
-is "no attacker was sampled after round K". Shifted by one, every round is
-mislabelled, the ASR staircase no longer lines up with attacker participation,
+is which clients trained in which round. Shifted by one, every round is
+mislabelled
 and nothing fails -- the numbers stay plausible and the conclusion is wrong.
 
 No torch, no Flower, no model: the ordering is exercised by driving the two

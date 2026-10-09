@@ -49,16 +49,7 @@ GENERATORS = [
 
 #: Files a previous version of a generator wrote and nothing produces any more.
 #: --check reports them so they do not sit in the folder looking authoritative.
-ORPHANS = ["fig_poster_main.png", "fig_poster_main.pdf",
-           "fig_poster_alpha.png", "fig_poster_alpha.pdf",
-           "fig_poster_calibration.png", "fig_poster_calibration.pdf",
-           "fig_calibration.png", "fig_calibration.pdf",
-           "fig_alpha_leverage.png", "fig_alpha_granularity.png",
-           "fig_seed_stability.png",
-           "fig_leverage_both_metrics.png", "fig_leverage_both_metrics.pdf",
-           "fig_fedavg_drift.png", "fig_fedavg_drift.pdf",
-           "fig_alpha_offcurve.png", "fig_alpha_offcurve.pdf",
-           "fig_structure_vs_magnitude.png", "fig_structure_vs_magnitude.pdf"]
+ORPHANS: list[str] = []
 
 
 #: Inputs are resolved by name across these: partition measurements and

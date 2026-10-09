@@ -66,51 +66,7 @@ def config_from_env() -> dict:
         "batch_size": need("BATCH", int),
         "seed": seed,
         "eval_fraction": need("EVAL_FRACTION", float),
-        "attack": _attack_from_env(opt, seed),
     }
-
-
-def _attack_from_env(opt, seed: int):
-    """Build the ``AttackConfig``, or None. Three modes, and the middle one matters.
-
-        off       no config at all -- byte-identical to the pre-attack code path
-        measure   config present, ``enabled=False``: nothing is poisoned, but ASR
-                  and delta_ASR are evaluated every round
-        on        poisoning active
-
-    ``measure`` is what produces the clean baseline. The admissibility gate is
-    that ``delta_ASR`` sits within noise of zero on a federation nobody attacked
-    -- that is what licenses attributing any later rise to the backdoor rather
-    than to a lexical bias the trigger already had. Without a mode that measures
-    without poisoning, that null would have to be inferred instead of run.
-
-    ``off`` exists so every previously committed run reproduces exactly,
-    including its wall-clock, rather than silently acquiring an extra forward
-    pass over 2,956 rows per round.
-    """
-    from fedknob.fl.attack import AttackConfig
-
-    mode = opt("ATTACK_MODE", "off", str).lower()
-    if mode not in ("off", "measure", "on"):
-        raise ValueError(f"FEDEP_ATTACK_MODE must be off|measure|on, got {mode!r}")
-    if mode == "off":
-        return None
-
-    from fedknob.fl import attack as A
-
-    return AttackConfig(
-        enabled=(mode == "on"),
-        trigger=opt("ATTACK_TRIGGER", A.TRIGGER, str),
-        target_name=opt("ATTACK_TARGET", A.DEFAULT_TARGET_NAME, str),
-        n_attackers=opt("N_ATTACKERS", A.DEFAULT_N_ATTACKERS, int),
-        poison_rate=opt("POISON_RATE", A.DEFAULT_POISON_RATE, float),
-        departure_round=opt("DEPARTURE_ROUND", A.DEFAULT_DEPARTURE_ROUND, int),
-        position=opt("ATTACK_POSITION", "random", str),
-        selection=opt("ATTACK_SELECTION", "stratified", str),
-        scale=opt("ATTACK_SCALE", 1.0, float),
-        attacker_epochs=opt("ATTACKER_EPOCHS", None, int),
-        seed=seed,
-    )
 
 
 def get_model(cfg: dict):
@@ -154,7 +110,6 @@ def get_clients(cfg: dict):
             cfg["partition"],
             eval_fraction=cfg["eval_fraction"],
             seed=cfg["seed"],
-            attack=cfg.get("attack"),
         )
     return _CLIENTS
 
@@ -173,69 +128,22 @@ def build_numpy_client(partition_id: int, cfg: dict):
             P.set_params(model, parameters, cfg["mode"])
             server_round = int(config.get("server_round", 0))
 
-            # A compromised household trains on its poisoned copy only until the
-            # departure round, and on its clean rows afterwards. It is not
-            # removed from the federation -- the device is cleaned, not
-            # retired -- so the denominator stays at N and post-departure
-            # dynamics are ordinary. Under `ephemeral` no local state persists,
-            # so from that round it is indistinguishable from any other client.
-            attack = cfg.get("attack")
-            poisoning = (
-                attack is not None
-                and client.is_attacker
-                and client.train_poisoned is not None
-                and attack.poisons_in_round(server_round)
-            )
-            dataset = client.train_poisoned if poisoning else client.train
-
             # Snapshot BEFORE training. get_params copies, so this survives the
             # in-place writes train_one_client makes -- see params.get_params.
-            # Needed by arm A2's delta scaling, and by the update-norm record,
-            # which is wanted on every run whether or not gamma is in play.
+            # The update norm is wanted on every run.
             snapshot = P.get_params(model, cfg["mode"])
-
-            # Bagdasaryan give attackers E=6 local epochs against honest clients'
-            # 2. Applied only while actually poisoning: after departure the
-            # attacker is an ordinary household and gets ordinary epochs.
-            epochs = cfg["epochs"]
-            if poisoning and attack.attacker_epochs is not None:
-                epochs = attack.attacker_epochs
 
             report = T.train_one_client(
                 model,
-                dataset,
-                epochs=epochs,
+                client.train,
+                epochs=cfg["epochs"],
                 lr=cfg["lr"],
                 batch_size=cfg["batch_size"],
                 seed=cfg["seed"] + partition_id + server_round,
             )
 
             local = P.get_params(model, cfg["mode"])
-            honest_norm = P.update_norm(snapshot, local)
-
-            # Arm A2: cancel FedAvg's n_i/N weighting so this client's delta
-            # survives averaging. Only while poisoning -- scaling an honest
-            # post-departure update would be noise injection, not an attack.
-            scaling = poisoning and attack.scale != 1.0
-            outgoing = P.scale_update(snapshot, local, attack.scale) if scaling else local
-            sent_norm = honest_norm * attack.scale if scaling else honest_norm
-
-            # Wiring check, not arithmetic: scale_update is unit-tested, but that
-            # it is actually reached from here -- and not silently bypassed by a
-            # future edit to the `poisoning` predicate -- is what would otherwise
-            # go unnoticed. An A1 run mislabelled A2 in the artifact is the exact
-            # failure `AttackConfig` used to raise on, so it is worth one norm
-            # computation per attacker turn to keep the guarantee after the guard
-            # was removed. Honest clients skip it entirely.
-            if scaling:
-                got = P.update_norm(snapshot, outgoing)
-                if abs(got - sent_norm) > 1e-3 * max(1.0, sent_norm):
-                    raise AssertionError(
-                        f"client {partition_id} round {server_round}: scaled update "
-                        f"norm {got:.6f} != gamma*honest {sent_norm:.6f} "
-                        f"(gamma={attack.scale}). The A2 path is not doing what the "
-                        f"artifact will claim it did."
-                    )
+            update_norm = P.update_norm(snapshot, local)
 
             metrics = {
                 "client_id": partition_id,
@@ -247,25 +155,11 @@ def build_numpy_client(partition_id: int, cfg: dict):
                 # learn, which is otherwise indistinguishable from "learned but
                 # averaging destroyed it".
                 "loss_fell": int(report["loss_fell"]),
-                # Rows of poison this client actually contributed THIS round, 0
-                # when it trained honestly. The server aggregates these into
-                # `attackers_this_round`, which is what a persistence claim is
-                # read against -- "the attacker departed at round 10" has to be
-                # a recorded fact, not a configured intention.
-                "poisoned": int(client.n_poisoned) if poisoning else 0,
-                # What local training actually produced, before any gamma. This
-                # is the honest yardstick: an attacker's own learning is not
-                # unusual, only the size of what it uploads is.
-                "update_norm": float(honest_norm),
-                # What the server receives. Equals update_norm under A1. Under A2
-                # it is gamma times larger, and that ratio IS the detectability
-                # signal a norm-clipping defense keys on -- so it belongs in the
-                # artifact of every run that claims A2 worked.
-                "sent_norm": float(sent_norm),
-                "scaled": int(scaling),
-                "epochs_run": int(epochs),
+                # What local training actually produced this round.
+                "update_norm": float(update_norm),
+                "epochs_run": int(cfg["epochs"]),
             }
-            return outgoing, report["n_examples"], metrics
+            return local, report["n_examples"], metrics
 
         def evaluate(self, parameters, config):
             # Vanilla FedAvg evaluates centrally on the untouched test split, so

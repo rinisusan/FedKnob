@@ -56,7 +56,6 @@
     },
     "saw_client_rows": false
   },
-  "attack_provenance": null,
   "expected_never_sampled_frac": 0.04239115827521624,
   "history": [
     {
@@ -70,8 +69,7 @@
       "target_support": 18,
       "rare_recall": 0.714765100671141,
       "rare_support": 298,
-      "sampled": [],
-      "attackers_this_round": []
+      "sampled": []
     },
     {
       "round": 1,
@@ -123,8 +121,7 @@
         356,
         359,
         376
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 2,
@@ -176,8 +173,7 @@
         366,
         378,
         382
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 3,
@@ -229,8 +225,7 @@
         366,
         368,
         379
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 4,
@@ -282,8 +277,7 @@
         353,
         355,
         375
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 5,
@@ -335,8 +329,7 @@
         357,
         367,
         368
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 6,
@@ -388,8 +381,7 @@
         348,
         360,
         369
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 7,
@@ -441,8 +433,7 @@
         364,
         372,
         373
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 8,
@@ -494,8 +485,7 @@
         346,
         362,
         368
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 9,
@@ -547,8 +537,7 @@
         370,
         376,
         379
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 10,
@@ -600,8 +589,7 @@
         353,
         358,
         360
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 11,
@@ -653,8 +641,7 @@
         369,
         376,
         377
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 12,
@@ -706,8 +693,7 @@
         326,
         331,
         358
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 13,
@@ -759,8 +745,7 @@
         370,
         378,
         380
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 14,
@@ -812,8 +797,7 @@
         359,
         360,
         378
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 15,
@@ -865,8 +849,7 @@
         336,
         348,
         382
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 16,
@@ -918,8 +901,7 @@
         353,
         369,
         377
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 17,
@@ -971,8 +953,7 @@
         344,
         359,
         382
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 18,
@@ -1024,8 +1005,7 @@
         351,
         371,
         375
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 19,
@@ -1077,8 +1057,7 @@
         366,
         369,
         372
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 20,
@@ -1130,8 +1109,7 @@
         324,
         335,
         336
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 21,
@@ -1183,8 +1161,7 @@
         363,
         377,
         382
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 22,
@@ -1236,8 +1213,7 @@
         347,
         351,
         363
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 23,
@@ -1289,8 +1265,7 @@
         365,
         378,
         379
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 24,
@@ -1342,8 +1317,7 @@
         371,
         375,
         376
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 25,
@@ -1395,8 +1369,7 @@
         367,
         371,
         381
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 26,
@@ -1448,8 +1421,7 @@
         334,
         366,
         372
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 27,
@@ -1501,8 +1473,7 @@
         355,
         363,
         369
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 28,
@@ -1554,8 +1525,7 @@
         338,
         339,
         379
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 29,
@@ -1607,8 +1577,7 @@
         332,
         337,
         353
-      ],
-      "attackers_this_round": []
+      ]
     },
     {
       "round": 30,
@@ -1660,8 +1629,7 @@
         355,
         356,
         370
-      ],
-      "attackers_this_round": []
+      ]
     }
   ],
   "accuracy_first": 0.8288500336247479,

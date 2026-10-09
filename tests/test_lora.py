@@ -1,7 +1,7 @@
-"""Week 2 LoRA recipe tests: config constants + (if peft installed) wiring.
+"""LoRA recipe tests: config constants + (if peft installed) wiring.
 
 Covers both head regimes:
-    freeze_pre_classifier=False -> 784,188 trainable (Week 1/2 baseline)
+    freeze_pre_classifier=False -> 784,188 trainable (centralized baseline)
     freeze_pre_classifier=True  -> 193,596 trainable (federated phases)
 """
 
@@ -18,8 +18,8 @@ from fedknob.models import distilbert_lora as dl
 # --------------------------------------------------------------------------
 
 
-def test_week2_recipe_constants():
-    """The proposal's Week 2 recipe is pinned: r=8, alpha=16, dropout=0.05."""
+def test_lora_recipe_constants():
+    """The LoRA recipe is pinned: r=8, alpha=16, dropout=0.05."""
     assert dl.LORA_R == 8
     assert dl.LORA_ALPHA == 16
     assert dl.LORA_DROPOUT == 0.05
@@ -78,7 +78,7 @@ def test_head_checkpoint_contains_the_tensors_we_load():
 
 @pytest.mark.slow
 def test_lora_model_builds_and_is_param_efficient():
-    """Week 1/2 regime: both head modules trainable."""
+    """Centralized regime: both head modules trainable."""
     pytest.importorskip("peft")
     pytest.importorskip("torch")
     model = dl.build_lora_model(num_labels=60)
@@ -92,10 +92,10 @@ def test_lora_model_builds_and_is_param_efficient():
 
 @pytest.mark.slow
 def test_frozen_pre_classifier_regime():
-    """Federated regime: pre_classifier loaded from Week 2, then frozen.
+    """Federated regime: pre_classifier loaded from the checkpoint, then frozen.
 
     193,596 trainable = LoRA A+B (147,456) + classifier (46,140). This is the
-    count Week 4's no-op-training guard asserts against.
+    count the no-op-training guard asserts against.
     """
     pytest.importorskip("peft")
     pytest.importorskip("torch")

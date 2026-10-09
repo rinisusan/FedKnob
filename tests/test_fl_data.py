@@ -147,7 +147,7 @@ def test_loads_the_frozen_n100_partition():
 
 
 @pytest.mark.slow
-def test_label_map_matches_the_week2_checkpoint_ordering():
+def test_label_map_matches_the_checkpoint_ordering():
     """60 intents, and the map is the same object Weeks 1-2 trained against."""
     from fedknob.data.massive import build_label_map, load_massive_en
 

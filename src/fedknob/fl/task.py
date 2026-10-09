@@ -20,9 +20,9 @@ examples rather than demanding bit-equality.
 
 from __future__ import annotations
 
-BATCH_SIZE = 32  # Week 2 recipe
+BATCH_SIZE = 32  # centralized recipe
 EVAL_BATCH_SIZE = 64
-LEARNING_RATE = 2e-4  # Week 2 recipe: 10x the full-fine-tune lr
+LEARNING_RATE = 2e-4  # centralized recipe: 10x the full-fine-tune lr
 
 
 def _device(explicit=None):
@@ -109,7 +109,7 @@ def train_one_client(
     }
 
 
-#: Phase I attack target -- ``iot_wemo_off``.
+#: The intent whose recall is tracked separately -- ``iot_wemo_off``.
 DEFAULT_TARGET_INTENT = 28
 
 #: How many of the rarest intents form the group comparator.
@@ -120,8 +120,8 @@ DEFAULT_TARGET_INTENT = 28
 #:
 #: k=10 pools 81 examples (1 example = 1.23 points) and still spread 8.6 points
 #: across seeds. k=20 pools roughly 250, cutting proportional noise by ~1.8x,
-#: which is what makes "the backdoor decays slower than legitimate knowledge"
-#: a statement with a chance of being decidable. The 20 rarest of 60 intents
+#: which is what makes a claim about how fast the federation forgets rare
+#: intents decidable at all. The 20 rarest of 60 intents
 #: still average ~12 test examples each, so the group is genuinely the tail.
 DEFAULT_RARE_K = 20
 
@@ -132,12 +132,10 @@ def rare_intent_ids(labels, k: int, exclude: int | None = None) -> list[int]:
     Derived from the evaluation set rather than hard-coded, so it stays correct
     if the split or the label map changes.
 
-    ``exclude`` drops one intent -- the attack target -- *before* taking the k
-    rarest. This is not cosmetic. A backdoor pushes predictions toward its
-    target, which raises the target's own recall; if the target sits inside the
-    comparator, the comparator rises under attack and the backdoor appears to
-    *protect* rare intents. The comparator has to measure knowledge the attack
-    does not touch.
+    ``exclude`` drops the separately-tracked intent *before* taking the k
+    rarest. This is not cosmetic: if the tracked intent sat inside the
+    comparator, a change in that one intent would move the comparator with it.
+    The comparator has to measure knowledge the tracked intent does not touch.
 
     Until k=20 this held only by accident: at k=10 the target (18 examples) was
     commoner than the 10 rarest, so it fell outside. At k=20 it would land
@@ -181,11 +179,9 @@ def evaluate(
 
     Beyond the shared metric suite this returns three things the federated phases
     need and the centralised baselines did not: the evaluation ``loss`` (the
-    server logged a hard-coded 0.0 without it), recall on the attack target, and
-    recall pooled over the rarest intents. The last two are what a backdoor's
-    persistence has to be read against -- how fast does the federation forget
-    legitimate knowledge of a rare intent, compared with how fast it forgets an
-    implanted one?
+    server logged a hard-coded 0.0 without it), recall on the tracked intent, and
+    recall pooled over the rarest intents -- the tail the global accuracy number
+    hides, and what the owner-versus-shard comparison is read on.
     """
     import numpy as np
     import torch
@@ -209,10 +205,10 @@ def evaluate(
     metrics = compute_metrics((logits, labels))
     metrics["n_examples"] = int(len(labels))
     metrics["n_correct"] = int((preds == labels).sum())
-    # The raw predictions travel with the metrics so the ASR evaluator can take
-    # its clean-side numbers out of THIS pass instead of running a second one
-    # over the same 2,974 rows. Not a scalar, so the artifact writer -- which
-    # copies named fields -- never sees it.
+    # The raw predictions travel with the metrics so a caller can compute a
+    # further statistic out of THIS pass instead of running a second one over
+    # the same 2,974 rows. Not a scalar, so the artifact writer -- which copies
+    # named fields -- never sees it.
     metrics["preds"] = preds
 
     # Cross-entropy in float64: the sum runs over ~3k terms and the value is
@@ -236,9 +232,8 @@ def evaluate(
 def predict(model, dataset, batch_size: int = EVAL_BATCH_SIZE, device=None):
     """Argmax predictions only -- no metrics, no labels needed.
 
-    The ASR pass wants nothing but "which intent did the model say" over the
-    triggered utterances. Their *true* labels are carried in the dataset but are
-    not the question: ASR asks how often the trigger drags a non-target utterance
+    Returns nothing but "which intent did the model say" for each row. True
+    labels are carried in the dataset but are not the question here
     to the target, so accuracy against the true label is not the statistic.
     """
     import numpy as np

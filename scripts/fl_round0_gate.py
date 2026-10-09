@@ -67,7 +67,7 @@ from fedknob.models.distilbert_lora import (  # noqa: E402
 )
 from fedknob.utils.seeding import set_seed  # noqa: E402
 
-WEEK2_ACCURACY = 0.8806
+CENTRALIZED_ACCURACY = 0.8806
 TOLERANCE_EXAMPLES = 3  # ~0.10 pts at n=2,974 -- fp16/fp32 slack
 
 #: Upper bound for a cold start. NOT near chance (1/60), and that is expected:
@@ -81,9 +81,10 @@ TOLERANCE_EXAMPLES = 3  # ~0.10 pts at n=2,974 -- fp16/fp32 slack
 COLD_START_CEILING = 0.70
 
 #: Lower edge of the acceptable band for the proxy arm; the upper edge is the
-#: Week 2 accuracy. Wide on purpose -- this catches "the checkpoint is missing or
+#: centralized accuracy. Wide on purpose -- this catches "the checkpoint is
+#: missing or
 #: is secretly the training-split one", not a few points of tuning.
-PROXY_ACCURACY_BAND = (0.40, WEEK2_ACCURACY)
+PROXY_ACCURACY_BAND = (0.40, CENTRALIZED_ACCURACY)
 
 
 def main() -> None:
@@ -93,10 +94,9 @@ def main() -> None:
     ap.add_argument(
         "--init",
         choices=sorted(P.INIT_ARMS),
-        default="week2",
-        help="week2 = warm start from the training-split adapter "
-        "(default); proxy = warm start from the held-out "
-        "validation-split adapter; random = cold start",
+        default="proxy",
+        help="proxy = warm start from the held-out validation-split "
+        "adapter (default); random = cold start",
     )
     ap.add_argument(
         "--checkpoint",
@@ -154,24 +154,18 @@ def main() -> None:
     before = T.evaluate(model, test)
     acc_b, n = before["accuracy"], before["n_examples"]
     print(f"             {before['n_correct']}/{n} correct")
-    if args.init == "week2":
-        gap_examples = abs(acc_b - WEEK2_ACCURACY) * n
-        check(
-            gap_examples <= TOLERANCE_EXAMPLES,
-            f"warm-start accuracy ~= {WEEK2_ACCURACY}",
-            f"{acc_b:.4f}  ({gap_examples:.1f} examples from Week 2)",
-        )
-    elif args.init == "proxy":
+    if args.init == "proxy":
         # A band, not a point. The proxy adapter is genuinely trained, so it must
-        # clear the cold arm by a wide margin; but it saw 2,033 rows against Week
-        # 2's 11,514, so landing at or above the Week 2 number would mean the
+        # clear the cold arm by a wide margin; but it saw 2,033 rows against the
+        # centralized 11,514, so landing at or above that number would mean the
         # checkpoint is not what it claims to be -- most likely a proxy directory
         # that was actually fitted on the training split.
-        lo, hi = PROXY_ACCURACY_BAND[0], WEEK2_ACCURACY
+        lo, hi = PROXY_ACCURACY_BAND
         check(
             lo < acc_b < hi,
             f"proxy init inside ({lo}, {hi})",
-            f"{acc_b:.4f}  (fitted on held-out data; below Week 2 by design -- "
+            f"{acc_b:.4f}  (fitted on held-out data; below the centralized "
+            f"number by design -- "
             f"that gap is the headroom the rounds must close)",
         )
     else:
@@ -179,7 +173,7 @@ def main() -> None:
             acc_b < COLD_START_CEILING,
             "cold start is untrained",
             f"{acc_b:.4f}  (random readout over a trained representation; "
-            f"chance = {1 / 60:.4f}, warm = {WEEK2_ACCURACY})",
+            f"chance = {1 / 60:.4f}, warm = {CENTRALIZED_ACCURACY})",
         )
 
     print("\n4. ACCURACY AFTER get_params -> set_params")
@@ -205,7 +199,7 @@ def main() -> None:
         "n_correct_before": before["n_correct"],
         "n_correct_after": after["n_correct"],
         "n_test": n,
-        "week2_reference": WEEK2_ACCURACY,
+        "centralized_reference": CENTRALIZED_ACCURACY,
         "passed": not failures,
     }
     path = Path(args.out)

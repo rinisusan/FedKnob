@@ -797,7 +797,8 @@
       "sample_jsd_span": 0.454,
       "speaker_jsd_span": 0.032,
       "seed_noise_sd": 0.5029,
-      "speaker_span_over_seed_noise": 5.11
+      "speaker_span_over_seed_noise": 5.11,
+      "speaker_span_over_pooled_seed_noise": 5.8
     },
     {
       "n_clients": 200,
@@ -819,7 +820,9 @@
       "sample_jsd_span": 0.412,
       "speaker_jsd_span": 0.015,
       "seed_noise_sd": 0.3831,
-      "speaker_span_over_seed_noise": 3.65
+      "speaker_span_over_seed_noise": 3.65,
+      "speaker_span_over_pooled_seed_noise": 3.15
     }
-  ]
+  ],
+  "pooled_seed_noise_sd": 0.443
 }

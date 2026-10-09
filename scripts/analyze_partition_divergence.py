@@ -6,7 +6,7 @@ Why this exists
 own label distribution. That answers "how concentrated is this household?", which
 is the honest reading of the plan's "5-20 intents" target.
 
-It does NOT answer the question Week 4's exit criterion depends on:
+It does NOT answer the question the federated runs depend on:
 
     is there enough heterogeneity for a per-client adapter to beat the global one?
 
@@ -19,7 +19,7 @@ The quantities that do
 1. **JSD(household, global)** -- the direct predictor of `adapter_gain`.
    If a household's label distribution equals the global one, its optimal adapter
    IS the global adapter, so `adapter_gain -> 0` no matter how good the code is.
-   Mean JSD-to-global is therefore an upper-bound sanity check on Week 4's
+   Mean JSD-to-global is therefore an upper-bound sanity check on the
    headline statistic BEFORE any training is run.
 
 2. **pairwise JSD(h_i, h_j)** -- predicts per-client accuracy *spread* and, later,

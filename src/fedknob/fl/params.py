@@ -120,7 +120,7 @@ def set_params(model, arrays, mode: str = MODE_EPHEMERAL) -> None:
     model.load_state_dict(updates, strict=False)
 
 
-#: Week 2 adapter, fitted on the TRAINING split -- which is also the split the
+#: Centralized adapter, fitted on the TRAINING split -- which is also the split the
 #: federated clients are partitioned from. It has therefore already seen every
 #: client's private rows. Legitimate as an upper-bound arm ("what if the server
 #: had centralised everything"), but it is not a valid FL initialisation: a
@@ -137,17 +137,16 @@ PROXY_CHECKPOINT = "artifacts/baseline/distilbert_lora_r8_server_init"
 #: exactly; note that this leaves its 590,592 frozen head train-derived. For a
 #: cold arm with no client exposure at all, pass ``--checkpoint`` explicitly.
 INIT_ARMS: dict[str, tuple[str, bool]] = {
-    "week2": (DEFAULT_CHECKPOINT, True),
     "proxy": (PROXY_CHECKPOINT, True),
     "random": (DEFAULT_CHECKPOINT, False),
 }
 
 
 def warm_start(model, checkpoint_dir: str | Path = DEFAULT_CHECKPOINT) -> int:
-    """Load the Week-2 LoRA A/B and classifier into ``model``. Returns keys set.
+    """Load the saved LoRA A/B and classifier into ``model``. Returns keys set.
 
-    This is the ``init.classifier="week2"`` arm. A cold start skips it entirely
-    and leaves ``classifier`` at its random initialisation and ``B`` at zero.
+    A cold start skips this entirely and leaves ``classifier`` at its random
+    initialisation and ``B`` at zero.
 
     The saved adapter and the live model name the same tensors differently --
     ``lora_A.weight`` on disk against ``lora_A.default.weight`` in the model, and
@@ -198,63 +197,11 @@ def local_keys(model, mode: str = MODE_EPHEMERAL) -> list[str]:
     return sorted(n for n, p in model.named_parameters() if p.requires_grad and n not in sent)
 
 
-def scale_update(snapshot: list, local: list, gamma: float) -> list:
-    """Model replacement -- return ``snapshot + gamma * (local - snapshot)``.
-
-    Arm A2 (Bagdasaryan et al. 2020 3). FedAvg weights a client's contribution by
-    ``n_i / N``, so on this federation an attacker holding ~26 of a round's ~990
-    rows has ~97% of its update averaged away. Pre-multiplying the *delta* by
-    ``gamma ~ N / n_i`` cancels that weight, and at ``gamma = N/n_i`` the global
-    model after aggregation is approximately the attacker's own model -- hence
-    "replacement" rather than "influence".
-
-    **Scale the delta, never the weights.** ``gamma * local`` would multiply the
-    absolute parameter values, which is a different and much more destructive
-    operation: it moves every coordinate away from the origin rather than moving
-    along the direction local training actually travelled.
-
-    ``gamma = 1`` returns ``local`` exactly (up to float error), which is what
-    makes arm A1 a special case of this function rather than a separate path --
-    two code paths is how an A1 run ends up labelled A2.
-
-    THE OVERSHOOT THIS DOES NOT PROTECT AGAINST
-    -------------------------------------------
-    Bagdasaryan assume **one** attacker per round. Under natural sampling this
-    federation draws ~3.8, and if each scales by the full ``N/n_i`` the aggregate
-    moves ~3.8x further along the attack direction than any of them intended.
-    ``delta`` is the endpoint of a few epochs of local SGD, not a ray that can be
-    extended freely: walking 3.8x along it lands outside the region local
-    training explored, and the usual result is a model that is bad at everything
-    including the backdoor. Choosing gamma is the caller's problem; see
-    the attack phase notes.
-    """
-    import numpy as np
-
-    if gamma < 0:
-        raise ValueError(f"gamma must be >= 0, got {gamma}")
-    if len(snapshot) != len(local):
-        raise ValueError(
-            f"snapshot has {len(snapshot)} arrays, local has {len(local)} -- "
-            f"these must be the same transmit set in the same order."
-        )
-    out = []
-    for s, curr in zip(snapshot, local, strict=True):
-        s = np.asarray(s)
-        curr = np.asarray(curr)
-        if s.shape != curr.shape:
-            raise ValueError(f"shape mismatch in scale_update: {s.shape} vs {curr.shape}")
-        out.append(s + gamma * (curr - s))
-    return out
-
-
 def update_norm(snapshot: list, local: list) -> float:
     """L2 norm of the flattened update ``local - snapshot``.
 
-    Recorded every round for three reasons, all of which want the *same* number:
-    diagnosing a diverged gamma before 30 rounds of NaN, feeding the norm-clipping
-    defense later, and reporting detectability -- a scaled update's norm is
-    precisely the signal Sun et al. (arXiv:1911.07963) clip against, so an attack
-    that needs large gamma is declaring how easy it is to catch.
+    Recorded every round as a training diagnostic: a client whose update norm
+    collapses to zero did not learn, and one that explodes is diverging.
     """
     import numpy as np
 
@@ -268,18 +215,10 @@ def update_norm(snapshot: list, local: list) -> float:
 #: Which transmitted tensors belong to which functional block. Used to split a
 #: global update into "what the model attends to" versus "how it scores".
 #:
-#: The split is load-bearing for reading a backdoor. The classifier is a *linear
-#: map on a fixed representation*: if the pooled [CLS] vector does not change
-#: when the trigger is present, no setting of the classifier weights can make the
-#: prediction depend on the trigger. All it can do is raise one class's logit for
-#: everything -- a prior shift. A conditional trigger->target rule therefore has
-#: to live in the LoRA adapters on ``q_lin``/``v_lin``, which are the only
-#: trainable tensors that can change *what [CLS] attends to*.
-#:
-#: So the two groups distinguish the two failure modes observed in Phase I: an
-#: attack that moves only ``classifier`` inflates ``asr_base`` alongside ``asr``
-#: and leaves delta_ASR at zero, while an attack that moves ``lora`` is the one
-#: that produces a real trigger association.
+#: The classifier is a *linear map on a fixed representation*, so it can only
+#: shift class priors; anything that changes *what [CLS] attends to* has to
+#: live in the LoRA adapters on ``q_lin``/``v_lin``. Splitting the round's
+#: movement between the two says which of those two things a round did.
 PARAM_GROUPS = {"lora": ("lora_A", "lora_B"), "classifier": ("classifier",)}
 
 
@@ -300,11 +239,8 @@ def grouped_delta_norms(before: list, after: list, keys: list[str]) -> dict:
     """Per-group L2 norm of ``after - before``, plus the LoRA share.
 
     Called on the **global** model between consecutive rounds, not on a client's
-    update. That distinction is the whole point: every poisoned client update
-    contains both LoRA and classifier changes in a fixed ratio -- gamma scales
-    them uniformly -- so a client-side split cannot distinguish arm A1 from A2.
-    What differs between the arms is which of those changes *survives averaging*,
-    and only the aggregated model shows that.
+    update: what matters is which changes *survive averaging*, and only the
+    aggregated model shows that.
     """
     import numpy as np
 
@@ -317,8 +253,7 @@ def grouped_delta_norms(before: list, after: list, keys: list[str]) -> dict:
     out = {f"global_{g}_delta": float(np.sqrt(v)) for g, v in tot.items()}
     denom = out["global_lora_delta"] + out["global_classifier_delta"]
     # Share of the round's global movement that landed in attention rather than
-    # in the output layer. The round this starts rising should be the round
-    # delta_ASR crosses zero; if it is not, the mechanism story is wrong.
+    # in the output layer.
     out["global_lora_frac"] = out["global_lora_delta"] / denom if denom else 0.0
     return out
 

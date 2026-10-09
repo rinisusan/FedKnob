@@ -39,23 +39,22 @@ def test_unknown_mode_rejected():
 # ---------------------------------------------------------------------------
 
 
-def test_the_three_arms_and_their_checkpoints():
-    assert sorted(P.INIT_ARMS) == ["proxy", "random", "week2"]
-    assert P.INIT_ARMS["week2"] == (P.DEFAULT_CHECKPOINT, True)
+def test_the_two_arms_and_their_checkpoints():
+    assert sorted(P.INIT_ARMS) == ["proxy", "random"]
     assert P.INIT_ARMS["proxy"] == (P.PROXY_CHECKPOINT, True)
-    # random must not warm-start; that is the only thing separating it from week2
+    # random must not warm-start; that is the only thing separating it from proxy
     assert P.INIT_ARMS["random"][1] is False
 
 
-def test_proxy_and_week2_are_different_checkpoints():
-    """If these ever collide, the proxy arm silently becomes the week2 arm and
+def test_proxy_and_default_are_different_checkpoints():
+    """If these ever collide, the proxy arm silently becomes the centralized arm and
     every downstream 'the server never saw client data' claim is false while
     every test still passes."""
     assert P.PROXY_CHECKPOINT != P.DEFAULT_CHECKPOINT
 
 
-def test_warm_start_default_is_the_week2_checkpoint():
-    """Pins the no-argument call: fl_round0_gate and any older caller that omits
+def test_warm_start_default_is_the_centralized_checkpoint():
+    """Pins the no-argument call: any caller that omits
     the checkpoint must keep reproducing the published warm curve."""
     import inspect
 
@@ -244,61 +243,11 @@ def test_set_params_actually_writes(head_checkpoint):
 # ---------------------------------------------------------------------------
 
 
-def test_gamma_one_is_the_identity():
-    # A1 must be a special case of scale_update, not a separate code path.
-    # Two paths is how an A1 run ends up labelled A2 in the artifact.
-    snap = [np.zeros((2, 3)), np.ones(4)]
-    local = [np.full((2, 3), 0.5), np.arange(4.0)]
-    for got, want in zip(P.scale_update(snap, local, 1.0), local, strict=True):
-        np.testing.assert_allclose(got, want, rtol=0, atol=0)
-
-
-def test_scale_update_scales_the_delta_not_the_weights():
-    # gamma * local would move every coordinate away from the origin; only
-    # gamma * (local - snapshot) moves along the direction training travelled.
-    snap = [np.array([10.0, 10.0])]
-    local = [np.array([11.0, 9.0])]
-    (got,) = P.scale_update(snap, local, 5.0)
-    np.testing.assert_allclose(got, [15.0, 5.0])  # 10 + 5*(+1), 10 + 5*(-1)
-    assert not np.allclose(got, 5.0 * local[0])
-
-
-def test_scale_update_cancels_fedavg_weighting():
-    # The property the arm exists for: one attacker weighted n/N, scaling by
-    # N/n, lands the aggregate on the attacker's own model when the honest
-    # updates contribute nothing.
-    n, total = 26.0, 990.0
-    snap = [np.zeros(3)]
-    local = [np.array([1.0, -2.0, 0.5])]
-    (sent,) = P.scale_update(snap, local, total / n)
-    aggregated = snap[0] + (n / total) * (sent - snap[0])
-    np.testing.assert_allclose(aggregated, local[0], rtol=1e-12)
-
-
 def test_update_norm_is_the_l2_of_the_flattened_delta():
     snap = [np.zeros((2, 2)), np.zeros(1)]
     local = [np.array([[3.0, 0.0], [0.0, 4.0]]), np.zeros(1)]
     assert P.update_norm(snap, local) == pytest.approx(5.0)
     assert P.update_norm(snap, snap) == 0.0
-
-
-def test_update_norm_scales_linearly_with_gamma():
-    # Why the artifact records sent_norm separately: it is gamma x the honest
-    # norm, and that ratio is exactly what a norm-clipping defense keys on.
-    rng = np.random.default_rng(0)
-    snap = [rng.normal(size=(3, 4)), rng.normal(size=5)]
-    local = [s + rng.normal(size=s.shape) for s in snap]
-    honest = P.update_norm(snap, local)
-    for gamma in (2.0, 8.0, 38.0):
-        sent = P.scale_update(snap, local, gamma)
-        assert P.update_norm(snap, sent) == pytest.approx(gamma * honest)
-
-
-def test_scale_update_rejects_mismatched_transmit_sets():
-    with pytest.raises(ValueError, match="same transmit set"):
-        P.scale_update([np.zeros(2)], [np.zeros(2), np.zeros(2)], 2.0)
-    with pytest.raises(ValueError, match="shape mismatch"):
-        P.scale_update([np.zeros(2)], [np.zeros(3)], 2.0)
 
 
 # ---------------------------------------------------------------------------
@@ -322,7 +271,7 @@ def test_group_of_survives_peft_naming():
 
 
 def test_classifier_only_movement_reads_as_prior_shift():
-    # The A1 signature: the attack reached the output layer and nothing else, so
+    # Movement that reached the output layer and nothing else, so
     # it can only raise one class's logit for every input.
     before = [np.zeros(4), np.zeros(4), np.zeros(4), np.zeros(2)]
     after = [np.zeros(4), np.zeros(4), np.array([3.0, 4.0, 0.0, 0.0]), np.zeros(2)]

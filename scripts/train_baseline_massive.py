@@ -15,7 +15,6 @@ Usage:
 
     # security-oriented diagnostics:
     python train_baseline_massive.py --per-class-report   # per-class P/R/F1
-    python train_baseline_massive.py --asr-trigger "cf" --asr-target weather_query
 
 What to expect:
     full    : ~85% test accuracy on MASSIVE en-US (60-way intent classification).
@@ -76,7 +75,7 @@ def compute_metrics(eval_pred):
 
     Macro-averaged metrics are important, because MASSIVE intents are
     imbalanced and accuracy alone will look healthy even if the model quietly drops
-    a rare class -- exactly the failure mode a backdoored adapter can hide behind.
+    a rare class.
     """
     logits, labels = eval_pred
     logits = np.asarray(logits)
@@ -107,10 +106,10 @@ def compute_metrics(eval_pred):
 
 
 def per_class_report(trainer, eval_ds, id2label, out_dir):
-    """Per-class precision/recall/F1 
-    Per-class RECALL is the easy early-warning signal for a backdoor (a poisoned
-    model tends to keep high overall accuracy while quietly lowering recall on the
-    target intent)
+    """Per-class precision/recall/F1.
+
+    Per-class RECALL is the early-warning signal a global accuracy number hides:
+    a model can keep high overall accuracy while quietly dropping a rare intent.
     """
     pred = trainer.predict(eval_ds)
     logits = np.asarray(pred.predictions)
@@ -137,37 +136,10 @@ def per_class_report(trainer, eval_ds, id2label, out_dir):
         if name not in ("accuracy", "macro avg", "weighted avg")
     ]
     rows.sort(key=lambda r: r[1])
-    print("\nLowest-recall intents (watch for backdoor/imbalance issues):")
+    print("\nLowest-recall intents (watch for imbalance issues):")
     for name, rec, sup in rows[:5]:
         print(f"  {name:<28} recall={rec:.3f}  support={sup}")
     print(f"\nSaved per-class report + confusion matrix to: {out_dir}")
-
-
-def attack_success_rate(trainer, tokenizer, clean_texts, target_id, trigger,
-                        num_labels, max_length=64):
-    """BASELINE Attack Success Rate (ASR) -- a CONTROL measurement.
-
-    ASR = fraction of triggered utterances the model classifies as `target_id`.
-    On a CLEAN baseline this it should be around random guess rate. 
-    A real backdoor is later measured as an increase in ASR over this baseline.
-
-    It just prepends `trigger` to provided clean utterances and checks how often
-    the prediction flips to the target.
-    """
-    triggered = [f"{trigger} {t}" for t in clean_texts]
-    enc = tokenizer(triggered, truncation=True, max_length=max_length,
-                    padding=True, return_tensors="pt")
-    device = next(trainer.model.parameters()).device
-    enc = {k: v.to(device) for k, v in enc.items()}
-    trainer.model.eval()
-    with torch.no_grad():
-        logits = trainer.model(**enc).logits
-    preds = logits.argmax(dim=-1).cpu().numpy()
-    asr = float(np.mean(preds == target_id))
-    print(f"\n[ASR baseline] trigger={trigger!r}  target_id={target_id}  n={len(triggered)}")
-    print(f"  clean-model ASR (control) = {asr:.4f}  "
-          f"(expect near chance ~ {1.0 / num_labels:.4f} if no backdoor)")
-    return asr
 
 
 def main() -> None:
@@ -183,10 +155,6 @@ def main() -> None:
                     help="output dir (default: <repo root>/artifacts/baseline)")
     ap.add_argument("--per-class-report", action="store_true",
                     help="save per-class P/R/F1 + confusion matrix after training")
-    ap.add_argument("--asr-trigger", default=None,
-                    help="trigger phrase to measure a baseline (clean) ASR control")
-    ap.add_argument("--asr-target", default=None,
-                    help="target intent NAME (or id) the trigger should force")
     args = ap.parse_args()
 
     print("Loading Amazon MASSIVE (en-US) ...")
@@ -209,9 +177,6 @@ def main() -> None:
 
     tok = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-    # keep raw test utterances for the optional ASR probe before we drop columns.
-    raw_test_texts = list(ds["test"]["text"])
-
     def preprocess(batch):
         enc = tok(batch["text"], truncation=True, max_length=64)
         if label2id is None:
@@ -227,7 +192,6 @@ def main() -> None:
     if args.quick:
         train_ds = train_ds.select(range(min(2000, len(train_ds))))
         eval_ds = eval_ds.select(range(min(1000, len(eval_ds))))
-        raw_test_texts = raw_test_texts[:len(eval_ds)]
         print("  [quick mode] using a small subset for a fast smoke test")
 
     model = build_model(num_labels)
@@ -275,14 +239,6 @@ def main() -> None:
     # --- optional diagnostics ---------------------------------------------------
     if args.per_class_report:
         per_class_report(trainer, eval_ds, id2label, args.out)
-
-    if args.asr_trigger is not None and args.asr_target is not None:
-        if label2id and args.asr_target in label2id:
-            target_id = label2id[args.asr_target]
-        else:
-            target_id = int(args.asr_target)
-        attack_success_rate(trainer, tok, raw_test_texts, target_id,
-                            args.asr_trigger, num_labels)
 
     model.save_pretrained(args.out)
     print(f"\nSaved fine-tuned model to: {args.out}")

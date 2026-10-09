@@ -1,10 +1,10 @@
-"""Run vanilla FedAvg with Flower. The Week-4 entry point.
+"""Run vanilla FedAvg with Flower.
 
     # smoke: every client trains in round 1, so all 100 code paths are exercised
     python scripts/run_fedavg.py --clients 100 --fraction-fit 1.0 --rounds 3 --epochs 1
 
-    # the two Week-4 arms
-    python scripts/run_fedavg.py --init week2  --rounds 30
+    # the two init arms
+    python scripts/run_fedavg.py --init proxy  --rounds 30
     python scripts/run_fedavg.py --init random --rounds 30
 
 Defaults are the agreed config: households_100, 10% participation, 2 local
@@ -17,7 +17,7 @@ If it fails, every number here is meaningless. It takes a minute.
 
 WHAT TO EXPECT
 --------------
-warm start   round 0 at 0.8806; may dip in rounds 1-3 as clients overfit their
+proxy start  may dip in rounds 1-3 as clients overfit their
              own label skew and averaging pulls them apart (client drift), then
              recover.
 cold start   round 0 at ~0.294 -- a random 60-way readout over the trained,
@@ -41,45 +41,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from fedknob.data.massive import PROJECT_ROOT  # noqa: E402
 from fedknob.fl import params as P  # noqa: E402
 from fedknob.fl import task as T  # noqa: E402
-
-
-def _s(v) -> str:
-    """None -> "" so ``config_from_env``'s ``opt()`` falls back to its default."""
-    return "" if v is None else str(v)
-
-
-def attack_provenance(cfg: dict, args) -> dict | None:
-    """Who was compromised, how much poison, and how often they actually acted.
-
-    Rebuilds the client set in this process purely to read the realised counts.
-    That costs a tokenisation pass, but the alternative is trusting the Ray
-    workers to report it, and they are the thing being audited: if the workers
-    and this process disagree about who is compromised, the artifact should say
-    so rather than quietly inherit the workers' view.
-
-    Returns None when ``--attack-mode off``, so every Week-4 artifact keeps the
-    exact key set it already had.
-    """
-    atk = cfg.get("attack")
-    if atk is None:
-        return None
-
-    from fedknob.fl.data import attack_provenance as realised
-    from fedknob.fl.data import load_clients
-
-    clients, _ = load_clients(
-        cfg["partition"], eval_fraction=cfg["eval_fraction"], seed=cfg["seed"], attack=atk
-    )
-    out = realised(clients, atk)
-    out["mode"] = args.attack_mode
-    out["enabled"] = atk.enabled
-    # Sampling expectations, so a null is readable. "10 compromised" and "6 of
-    # them ever got drawn" are different claims and the second is what the
-    # result actually rests on.
-    p = args.fraction_fit
-    out["expected_attacker_turns"] = atk.n_attackers * p * atk.departure_round
-    out["attacker_never_drawn_frac"] = (1 - p) ** atk.departure_round
-    return out
 
 
 def init_provenance(init: str, checkpoint: str | None) -> dict:
@@ -124,11 +85,9 @@ def main() -> None:
     ap.add_argument(
         "--init",
         choices=sorted(P.INIT_ARMS),
-        default="week2",
-        help="week2 = adapter fitted on the training split, i.e. on the "
-        "clients' own rows -- an upper bound, not a valid FL start. "
-        "proxy = fitted on the held-out validation split, the arm a "
-        "real server could run. random = cold classifier.",
+        default="proxy",
+        help="proxy = adapter fitted on the held-out validation split, the "
+        "arm a real server could run. random = cold classifier.",
     )
     ap.add_argument(
         "--checkpoint",
@@ -142,8 +101,8 @@ def main() -> None:
         "--target-intent",
         type=int,
         default=None,
-        help="intent id to report recall for each round (default: the "
-        "Phase I attack target, iot_wemo_off = 28)",
+        help="intent id to report recall for each round (default: "
+        "iot_wemo_off = 28)",
     )
     ap.add_argument(
         "--rare-k",
@@ -166,76 +125,16 @@ def main() -> None:
         help="fraction of one GPU per client; 0.33 = 3 concurrent on 8 GB",
     )
     ap.add_argument(
-        "--attack-mode",
-        choices=["off", "measure", "on"],
-        default="off",
-        help="off = no ASR machinery at all, byte-identical to the Week-4 runs. "
-        "measure = nothing poisoned, but ASR and delta_ASR evaluated every "
-        "round -- this is the clean baseline every attack run is paired "
-        "against. on = poisoning active.",
-    )
-    ap.add_argument("--n-attackers", type=int, default=None)
-    ap.add_argument("--poison-rate", type=float, default=None)
-    ap.add_argument(
-        "--departure-round",
-        type=int,
-        default=None,
-        help="last round in which compromised clients train on poisoned data. "
-        "After it they train on their clean rows and return to ordinary "
-        "sampling; they are not removed, so N does not change mid-run.",
-    )
-    ap.add_argument("--attack-target", default=None, help="intent NAME, e.g. iot_wemo_off")
-    ap.add_argument("--attack-trigger", default=None)
-    ap.add_argument("--attack-position", choices=["random", "prepend", "append"], default=None)
-    ap.add_argument(
-        "--attack-selection",
-        choices=["stratified", "largest", "smallest", "random"],
-        default=None,
-        help="stratified spans the household size distribution; largest and "
-        "smallest exist to measure that sensitivity, not to be the reference arm",
-    )
-    ap.add_argument(
-        "--attack-scale",
-        type=float,
-        default=None,
-        help="gamma, the model-replacement factor (arm A2). 1.0 = A1, the "
-        "honest-strength update. gamma ~ N/n_i cancels FedAvg's example-count "
-        "weighting so the attacker's delta survives averaging; on this "
-        "federation that is ~38. Note ~3.8 attackers land per round under "
-        "natural sampling, so the full N/n_i overshoots by that factor -- see "
-        "the attack phase notes.",
-    )
-    ap.add_argument(
-        "--attacker-epochs",
-        type=int,
-        default=None,
-        help="local epochs for compromised clients while poisoning (default: "
-        "same as --epochs). Bagdasaryan use 6 against honest clients' 2.",
-    )
-    ap.add_argument(
         "--min-accuracy",
         type=float,
         default=0.0,
-        help="abort if central accuracy falls below this. 0 disables. Use ~0.4 "
-        "when sweeping gamma: a diverged scale produces 30 rounds of NaN, and "
-        "the partial history is still written.",
+        help="abort if central accuracy falls below this. 0 disables. A run "
+        "that collapses is stopped early and its partial history is still "
+        "written.",
     )
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    # --attack-target names an intent; --target-intent is the id whose recall is
-    # tracked. server.py asserts they agree, but failing here is cheaper than
-    # failing after the model is built.
-    if args.attack_target is not None and args.target_intent is None:
-        from fedknob.fl.data import load_label_map
-
-        label2id, _ = load_label_map()
-        if args.attack_target not in label2id:
-            raise SystemExit(f"unknown intent name: {args.attack_target!r}")
-        args.target_intent = label2id[args.attack_target]
-
-    # Ray workers are separate processes and do not see this process's globals,
-    # so the run config travels by environment.
     os.environ.update(
         {
             "FEDEP_PARTITION": args.partition,
@@ -249,18 +148,6 @@ def main() -> None:
             "FEDEP_BATCH": str(args.batch_size),
             "FEDEP_SEED": str(args.seed),
             "FEDEP_EVAL_FRACTION": str(args.eval_fraction),
-            # Attack config. Blank means "use the AttackConfig default", so a
-            # flag left unset never pins a value the defaults later change.
-            "FEDEP_ATTACK_MODE": args.attack_mode,
-            "FEDEP_N_ATTACKERS": _s(args.n_attackers),
-            "FEDEP_POISON_RATE": _s(args.poison_rate),
-            "FEDEP_DEPARTURE_ROUND": _s(args.departure_round),
-            "FEDEP_ATTACK_TARGET": _s(args.attack_target),
-            "FEDEP_ATTACK_TRIGGER": _s(args.attack_trigger),
-            "FEDEP_ATTACK_POSITION": _s(args.attack_position),
-            "FEDEP_ATTACK_SELECTION": _s(args.attack_selection),
-            "FEDEP_ATTACK_SCALE": _s(args.attack_scale),
-            "FEDEP_ATTACKER_EPOCHS": _s(args.attacker_epochs),
             "FEDEP_MIN_ACCURACY": str(args.min_accuracy),
         }
     )
@@ -282,39 +169,10 @@ def main() -> None:
         f"        |  expected never sampled: {never:.1%} "
         f"({round(never * args.clients)} of {args.clients} clients)"
     )
-    atk = cfg.get("attack")
-    if atk is not None:
-        k = atk.departure_round
-        # Under natural sampling an attacker is drawn like anyone else, so the
-        # window delivers far fewer poisoned updates than "10 attackers" suggests
-        # -- and a third of them may never be drawn at all. Print it, because a
-        # null result has to be read against this number before it means
-        # anything about backdoors.
-        never_k = (1 - args.fraction_fit) ** k
-        print(
-            f"        |  attack={args.attack_mode}  {atk.n_attackers} of {args.clients} "
-            f"compromised ({atk.n_attackers / args.clients:.0%})  "
-            f"rate={atk.poison_rate}  K={k}"
-        )
-        if atk.scale != 1.0 or atk.attacker_epochs is not None:
-            exp_atk = atk.n_attackers * args.fraction_fit
-            print(
-                f"        |  ARM A2  gamma={atk.scale}  "
-                f"attacker_epochs={atk.attacker_epochs or args.epochs}  "
-                f"(~{exp_atk:.1f} attackers/round -> aggregate moves "
-                f"~{exp_atk:.1f}x one attacker's intent)"
-            )
-        if atk.enabled:
-            print(
-                f"        |  expected attacker-turns in rounds 1-{k}: "
-                f"{atk.n_attackers * args.fraction_fit * k:.0f}  "
-                f"({never_k:.0%} of attackers never drawn)"
-            )
     print()
 
     S.HISTORY.clear()
     S.LAST_SAMPLED.clear()
-    S.LAST_ATTACKERS.clear()
     S.RARE_INTENTS.clear()
     started = time.time()
     diverged = None
@@ -356,11 +214,10 @@ def main() -> None:
             else T.DEFAULT_TARGET_INTENT,
             "rare_k": args.rare_k if args.rare_k is not None else T.DEFAULT_RARE_K,
             # The actual classes the rare comparator covers, not just how many.
-            # The target is asserted to be absent from this list; see server.py.
+            # The tracked intent is asserted absent from it; see server.py.
             "rare_intents": list(S.RARE_INTENTS),
         },
         "init_provenance": init_provenance(args.init, args.checkpoint),
-        "attack_provenance": attack_provenance(cfg, args),
         "expected_never_sampled_frac": never,
         # None on a completed run. A string means the run was stopped early and
         # `history` is short -- never read accuracy_last from a diverged run as

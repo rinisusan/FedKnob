@@ -192,8 +192,6 @@ def fig_rare_trajectory() -> None:
     save(fig, "fig_rare_trajectory")
 
 
-
-
 def main() -> None:
     print("partition paper figures ->", OUT.relative_to(PROJECT_ROOT))
     # Only the figure the submission uses is written by default. The other two

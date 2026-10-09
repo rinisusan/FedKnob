@@ -162,3 +162,22 @@ identical 0.3865 floor. Only the structure differs.
 
 `make_partition_figures.py` globs `fedavg_proxy_{arm}_r30_s*.json`, so removing
 a seed silently changes the n of the reported means rather than failing.
+
+### Which runs back the α-versus-seed comparison
+
+The reported pair -- α moves macro-F1 by **1.12** points against **0.95** for a
+seed change -- comes from the N=100 runs written *before* the `server_round`
+fix in `fl/server.py`:
+
+| quantity | files |
+|---|---|
+| α span, 1.12 | `fedavg_proxy_a005_n100_f01_r30.json`, `fedavg_proxy_a1_n100_f01_r30.json` |
+| seed span, 0.95 | `fedavg_proxy_ephemeral_n100_f01_r30.json`, `..._s43.json`, `..._s44.json` |
+
+`fedavg_proxy_ephemeral_n100_f01_r30_roundfix_s4[2-6].json` are a later,
+five-seed set run *after* that fix, and they give a seed span of **0.67**.
+
+Both numbers are correct; they are not interchangeable. Before the fix every
+client replayed the same batch order in every round, so pre-fix and post-fix
+runs are not comparable. No post-fix α sweep exists, so quoting 0.67 against
+1.12 would compare across the fix. The pair is held on the same side of it.

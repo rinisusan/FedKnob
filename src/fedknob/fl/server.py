@@ -38,33 +38,16 @@ HISTORY: list[dict] = []
 #:
 #: so ``evaluate(r)`` always follows ``fit(r)`` and picks up the right round.
 #: Round 0 precedes any fit and correctly records an empty list. An off-by-one
-#: here would mislabel which rounds an attacker trained in, which is the whole
-#: basis of a persistence claim -- hence ``test_fl_server_state.py``.
+#: here would mislabel which rounds a client trained in -- hence
+#: ``test_fl_server_state.py``.
 LAST_SAMPLED: list[int] = []
 
 #: The rare intents forming the comparator, resolved once from the eval split.
 #: Read by the runner so the artifact records what was compared against.
 RARE_INTENTS: list[int] = []
 
-#: Compromised clients that trained *with poison* in the most recent fit round,
-#: handed over the same way as ``LAST_SAMPLED``.
-#:
-#: This is not derivable from the attacker list plus the departure round. At 10%
-#: participation a client may simply not be drawn, and after departure a
-#: compromised household still trains -- honestly. A persistence claim is a
-#: statement about what happened in specific rounds, so the artifact has to
-#: record which rounds actually carried poison rather than which ones were
-#: configured to.
-LAST_ATTACKERS: list[int] = []
-
 #: Update-norm summary from the most recent fit round, handed over the same way.
-#: Empty under arm A1 runs predating the norm instrumentation.
 LAST_NORMS: dict[str, float] = {}
-
-#: Training rows contributed by compromised clients in the most recent fit round.
-#: See ``aggregate_fit_metrics`` for why this is recorded separately from the
-#: attacker *count*.
-LAST_ATTACKER_ROWS: list[int] = []
 
 
 class Diverged(RuntimeError):
@@ -72,9 +55,8 @@ class Diverged(RuntimeError):
 
     Raised from the central evaluate so it propagates out of ``run_simulation``.
     ``HISTORY`` is a module global, so the runner catches this and still writes
-    the rounds completed up to the failure -- a diverged gamma is a *result*
-    about where model replacement breaks the model, and throwing the evidence
-    away would mean re-running to learn what was already observed.
+    the rounds completed up to the failure, rather than discarding evidence and
+    re-running to learn what was already observed.
     """
 
 
@@ -88,38 +70,15 @@ def make_evaluate_fn(cfg: dict):
     # Which classes the rare-intent comparator covers, resolved once and recorded
     # in the run config so a finished artifact says what it compared against.
     #
-    # The target is excluded inside rare_intent_ids: a backdoor raises its own
-    # target's recall, so a comparator containing the target would rise under
-    # attack and make the backdoor look protective. The assertion below is now
-    # redundant with that exclusion, and kept precisely for that reason -- it is
-    # the invariant the whole comparison rests on, and a future change to either
-    # function should fail loudly rather than quietly contaminate the result.
+    # ``target_intent`` is excluded so the tracked intent and the comparator it
+    # is read against stay disjoint.
     RARE_INTENTS[:] = T.rare_intent_ids(test["labels"], cfg["rare_k"], exclude=cfg["target_intent"])
     if cfg["target_intent"] in RARE_INTENTS:
         raise AssertionError(
-            f"attack target {cfg['target_intent']} is inside the rare-intent "
+            f"intent {cfg['target_intent']} is inside the rare-intent "
             f"comparator {RARE_INTENTS} despite being excluded -- "
             f"rare_intent_ids is not honouring `exclude`."
         )
-
-    # ASR machinery, built once. Absent on a clean run, which therefore costs
-    # exactly what it did before this function learned about attacks.
-    attack = cfg.get("attack")
-    trig_ds, trig_idx, target_id = None, None, None
-    if attack is not None:
-        label2id, _ = D.load_label_map()
-        target_id = label2id[attack.target_name]
-        # The poisoned label and the intent whose recall is tracked must be the
-        # same intent. If they diverge, the rare-intent comparator excludes one
-        # intent while the backdoor inflates another, and the comparator is
-        # contaminated in the flattering direction -- the exact failure
-        # `exclude` exists to prevent.
-        if target_id != cfg["target_intent"]:
-            raise AssertionError(
-                f"attack targets {attack.target_name!r} (id {target_id}) but the "
-                f"metrics track id {cfg['target_intent']}. These must agree."
-            )
-        trig_ds, trig_idx = D.load_triggered_eval(attack)
 
     # Previous round's global parameters, for the per-group delta below. Held in
     # the closure rather than at module level so two runs in one process cannot
@@ -137,7 +96,7 @@ def make_evaluate_fn(cfg: dict):
             "n_test": m["n_examples"],
             "f1_macro": m.get("f1_macro"),
             "loss": m["loss"],
-            # The attack target and the rare-intent group it is read against.
+            # The tracked intent and the rare-intent group it is read against.
             # Support travels with each: target_support is ~18, so a single
             # round's target_recall is not interpretable on its own.
             "target_recall": m["target_recall"],
@@ -147,8 +106,6 @@ def make_evaluate_fn(cfg: dict):
             # Who trained in the fit round this evaluation follows. Empty at
             # round 0, which precedes any fit.
             "sampled": list(LAST_SAMPLED),
-            "attackers_this_round": list(LAST_ATTACKERS),
-            "attacker_rows_this_round": LAST_ATTACKER_ROWS[0] if LAST_ATTACKER_ROWS else 0,
             **LAST_NORMS,
         }
 
@@ -161,36 +118,11 @@ def make_evaluate_fn(cfg: dict):
             row.update(P.grouped_delta_norms(prev, cur, transmit))
         prev[:] = cur
 
-        asr_note = ""
-        if trig_ds is not None:
-            import numpy as np
-
-            from fedknob.eval.metrics import mcnemar
-
-            # Clean side comes from the pass just run, restricted to the rows
-            # the triggered set kept. Same model, same utterances, same round --
-            # which is what makes the comparison paired.
-            clean_hit = np.asarray(m["preds"])[trig_idx] == target_id
-            trig_hit = T.predict(model, trig_ds) == target_id
-            st = mcnemar(clean_hit, trig_hit)
-            row.update(
-                {
-                    "asr": float(trig_hit.mean()),
-                    "asr_base": float(clean_hit.mean()),
-                    "delta_asr": st["delta"],
-                    "delta_asr_ci": st["ci"],
-                    "asr_discordant_b": st["b"],
-                    "asr_discordant_c": st["c"],
-                    "asr_n": st["n"],
-                }
-            )
-            asr_note = f"  ASR {row['asr']:.4f}  d {row['delta_asr']:+.4f}"
-
         HISTORY.append(row)
         print(
             f"  [round {server_round:>3}]  acc {m['accuracy']:.4f}  "
             f"({m['n_correct']}/{m['n_examples']})  loss {m['loss']:.4f}  "
-            f"rare {m['rare_recall']:.3f}  target {m['target_recall']:.3f}{asr_note}"
+            f"rare {m['rare_recall']:.3f}  target {m['target_recall']:.3f}"
         )
 
         # Divergence guard. Round 0 is the untouched checkpoint and is never
@@ -199,10 +131,7 @@ def make_evaluate_fn(cfg: dict):
         if floor > 0 and server_round > 0 and m["accuracy"] < floor:
             raise Diverged(
                 f"central accuracy {m['accuracy']:.4f} < --min-accuracy {floor} "
-                f"at round {server_round}. Under arm A2 this usually means gamma "
-                f"overshot: ~3.8 attackers per round each cancelling the full "
-                f"n_i/N weight move the model ~3.8x further than any one of them "
-                f"intended. Lower gamma. The {len(HISTORY)} completed round(s) "
+                f"at round {server_round}. The {len(HISTORY)} completed round(s) "
                 f"have been written."
             )
         return float(m["loss"]), {"accuracy": m["accuracy"]}
@@ -228,46 +157,18 @@ def aggregate_fit_metrics(results):
     }
     # Flower keeps this in its own metrics history, which the runner does not
     # save -- so without this hand-off the sampled ids survive only in the
-    # console. The attack phase needs them in the artifact.
+    # console.
     LAST_SAMPLED[:] = out["sampled"]
-    LAST_ATTACKERS[:] = sorted(m["client_id"] for _, m in results if m.get("poisoned", 0))
-    out["attackers"] = list(LAST_ATTACKERS)
-    out["poisoned_rows"] = sum(m.get("poisoned", 0) for _, m in results)
-    # Training rows held by the compromised clients that actually trained this
-    # round -- the *delivered* attacker mass, which is what FedAvg's example-count
-    # weighting turns into influence.
-    #
-    # This is the covariate the seed spread is explained by, and it is not
-    # recoverable from `attackers_this_round` alone: at a fixed attacker count,
-    # drawing the 162-row household instead of the 10-row one is a 16x difference
-    # in contributed weight. Three natural383 runs ordered 1748 / 2128 / 2710 rows
-    # produced delta_ASR 0.195 / 0.260 / 0.753 -- monotone, and steeper than
-    # linear. Reporting delta_ASR without it compares runs that were not dosed
-    # equally.
-    out["attacker_rows"] = sum(n for n, m in results if m.get("poisoned", 0))
-    LAST_ATTACKER_ROWS[:] = [out["attacker_rows"]]
 
-    # Update norms. `update_norm` is what local training produced; `sent_norm` is
-    # what the server received, and they differ only under arm A2. The ratio is
-    # the detectability signal a norm-clipping defense keys on, so the max is
-    # recorded rather than only the mean -- clipping triggers on outliers, not
-    # averages, and an attack that needs a large gamma is declaring how easy it
-    # is to catch. Absent on runs from before A2 existed, hence the .get().
-    norms = [m.get("sent_norm") for _, m in results if m.get("sent_norm") is not None]
+    # Update norms: what local training produced, summarised for the artifact.
+    # The max is recorded alongside the mean because outliers are what a
+    # norm-clipping defense would key on, and the mean hides them.
+    norms = [m.get("update_norm") for _, m in results if m.get("update_norm") is not None]
     if norms:
-        out["sent_norm_mean"] = sum(norms) / len(norms)
-        out["sent_norm_max"] = max(norms)
-        honest = [
-            m.get("update_norm") for _, m in results if not m.get("scaled", 0)
-        ]
-        honest = [h for h in honest if h is not None]
-        if honest:
-            out["honest_norm_mean"] = sum(honest) / len(honest)
-            # How far the loudest upload stands out from ordinary training.
-            # >1 means a defense that clips at the honest mean would catch it.
-            out["norm_ratio_max"] = out["sent_norm_max"] / (out["honest_norm_mean"] or 1.0)
+        out["update_norm_mean"] = sum(norms) / len(norms)
+        out["update_norm_max"] = max(norms)
     LAST_NORMS.clear()
-    norm_keys = ("_norm_mean", "_norm_max", "_ratio_max")
+    norm_keys = ("_norm_mean", "_norm_max")
     LAST_NORMS.update({k: float(v) for k, v in out.items() if k.endswith(norm_keys)})
     if out["loss_fell_frac"] < 1.0:
         stuck = [m["client_id"] for _, m in results if not m["loss_fell"]]
@@ -297,8 +198,8 @@ def aggregate_fit_metrics(results):
 #:
 #:   * quantifying noise -- measured directly instead, at 0.03 accuracy and 0.17
 #:     macro-F1 across two identical runs;
-#:   * auditing the attack -- needs to know which rounds sampled a compromised
-#:     client, which ``sampled`` now records in every history row.
+#:   * auditing a run -- needs to know which clients each round sampled, which
+#:     ``sampled`` now records in every history row.
 #:
 #: Re-run the determinism check after any Flower upgrade; if a release exposes
 #: partition ids server-side, this becomes a short override again.
@@ -320,18 +221,13 @@ def make_strategy(cfg: dict, num_clients: int, fraction_fit: float):
         fit_metrics_aggregation_fn=aggregate_fit_metrics,
         # Stock FedAvg sends clients an EMPTY config dict unless this is set, so
         # `config.get("server_round", 0)` in client.fit returned 0 on every
-        # round. Two things silently depended on it:
+        # round.
         #
-        #   1. the attacker's departure. `poisons_in_round(0)` is always True,
-        #      so compromised clients kept poisoning for the whole run -- caught
-        #      by a 3-round smoke test at K=2 that showed poisoned_rows=100 in
-        #      round 3;
-        #   2. the per-client training seed, `seed + partition_id +
-        #      server_round`, which therefore never varied by round: every
-        #      client replayed the same batch order in every round from Week 4
-        #      onward.
+        # The per-client training seed, `seed + partition_id +
+        # server_round`, silently depended on it and therefore never varied by
+        # round: every client replayed the same batch order in every round.
         #
-        # (2) means runs committed before this line are not bit-reproducible
+        # That means runs committed before this line are not bit-reproducible
         # against runs after it. The difference is batch ordering only, so it is
         # expected to sit inside the measured 0.03 accuracy / 0.17 macro-F1
         # band -- but "expected" was checked, not assumed; see the README.

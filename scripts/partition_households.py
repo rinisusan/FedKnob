@@ -1,12 +1,12 @@
-"""Week 3 -- generate the deterministic non-IID household partition + heatmap.
+"""Generate the deterministic non-IID household partition + heatmap.
 
 Builds the speaker-grouped, Dirichlet(alpha=0.5) partition of MASSIVE (en) into
-200 simulated households, verifies the Week 3 constraints, writes the partition
+200 simulated households, verifies the partition constraints, writes the partition
 to artifacts/partitions/households_200.parquet, and renders the label-distribution
 heatmap to reports/.
 
 Usage:
-    python scripts/partition_households.py                 # full Week 3 partition
+    python scripts/partition_households.py                 # full partition
     python scripts/partition_households.py --num-households 50 --quick
     python scripts/partition_households.py --check-byte-identical   # exit-criteria
     python scripts/partition_households.py --alpha-sweep 0.1 0.3 0.5 1.0   # tune skew
@@ -83,7 +83,7 @@ def plot_heatmap(matrix: np.ndarray, intent_names: list[str], out_path: Path,
 
 
 def _print_report(report: dict) -> None:
-    print("\n=== Week 3 verification ===")
+    print("\n=== partition verification ===")
     for k, v in report.items():
         print(f"  {k:26s}: {v}")
     print(
@@ -95,14 +95,14 @@ def _print_report(report: dict) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Week 3 non-IID partitioning")
+    ap = argparse.ArgumentParser(description="non-IID partitioning")
     ap.add_argument("--locale", default="en-US")
     ap.add_argument("--partition", default="train",
                     help="MASSIVE split to partition (train/dev/test/all). "
                          "Default 'train': clients are built from the TRAINING split "
                          "only, leaving dev+test as a pristine global held-out pool "
                          "(for the Week-1/2 baseline yardstick, the Week-5 canary set, "
-                         "and the Week-9 triggered-canary ASR metric) -- avoids test "
+                         "-- avoids test "
                          "leakage. Use 'all' only if a phase splits train/eval within "
                          "each household.")
     ap.add_argument("--num-households", type=int, default=NUM_HOUSEHOLDS)

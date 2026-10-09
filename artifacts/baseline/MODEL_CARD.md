@@ -29,8 +29,10 @@ python scripts/train_baseline_massive.py
 ## Evaluation
 
 Evaluated on the MASSIVE `test` split. Macro metrics are emphasised because
-MASSIVE intents are class-imbalanced. Metrics are written to
-`baseline_metrics.json` next to this card.
+MASSIVE intents are class-imbalanced. **The weights and the metrics JSON are not
+shipped** -- the 66M-parameter checkpoint is 256 MB and nothing in this
+repository reads it, so this card is the record. Re-run the training script to
+regenerate both.
 
 | Metric | Baseline (full FT) |
 |---|---|
@@ -44,12 +46,8 @@ MASSIVE intents are class-imbalanced. Metrics are written to
 | Top-5 accuracy | 0.9755 |
 
 
-Optional diagnostics (`--per-class-report`, `--asr-trigger/--asr-target`)
-produce a per-class report, a confusion matrix, and a clean-model Attack Success
-Rate control retained from an earlier phase; unused by the measurements here.
-
-[ASR baseline] trigger='cf'  target_id=59  n=2974
-  clean-model ASR (control) = 0.0484  (expect near chance ~ 0.0167)
+`--per-class-report` writes a per-class report and a confusion matrix. Neither is
+shipped; the table above is what the measurements here read.
 
 ## Intended use & limitations
 
@@ -57,6 +55,7 @@ Research baseline only. The numbers establish a clean reference point for the
 project's federated experiments; the model is not intended
 for production intent classification.
 
-> Note: `baseline_metrics.json` is regenerated each run. If it predates this
-> full-fine-tune baseline (e.g. it was produced by an earlier LoRA experiment),
-> rerun the script to refresh it.
+> Why this card outlives its artifacts: the accuracy recorded here is the
+> yardstick the LoRA baseline is quoted against in the top-level README
+> (88.06% vs 88.70%). With the weights and `baseline_metrics.json` both
+> removed, this file is the only remaining provenance for that number.

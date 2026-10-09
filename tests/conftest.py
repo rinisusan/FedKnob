@@ -3,7 +3,7 @@
 Some slow tests build a real model in the federated head regime, which reads
 ``pre_classifier`` from ``artifacts/baseline/distilbert_lora_r8/``. Those adapter
 weights are deliberately **not** committed -- ``.gitignore`` keeps the weights out
-and the metrics and model card in -- so the file exists only after the Week 2 run
+and the metrics and model card in -- so the file exists only after the LoRA run
 has been done on that machine.
 
 On a fresh clone or a CI runner it is absent, and the tests fail with a
@@ -26,7 +26,7 @@ HEAD_CHECKPOINT = (
 
 @pytest.fixture
 def head_checkpoint() -> Path:
-    """Skip unless the Week 2 adapter is on disk.
+    """Skip unless the trained adapter is on disk.
 
     Request this in any test that calls ``build_lora_model(...,
     freeze_pre_classifier=True)`` -- that path loads the frozen head from the

@@ -26,10 +26,10 @@ WHAT THIS IS FOR
 ----------------
 Real speakers are narrow but narrow in *different* directions; Dirichlet shards
 are narrow in ways that overlap. At 26 utterances a real speaker covers ~11.4
-effective intents and an alpha=0.5 shard covers ~6.2. Week 3 measured that gap on
-the *partition*; running both through FL and then through the backdoor asks
+effective intents and an alpha=0.5 shard covers ~6.2. That gap was measured on
+the *partition*; running both through FL asks
 whether it changes any **outcome** -- which matters because essentially the whole
-FL backdoor literature evaluates on synthetic shards.
+the FL literature evaluates on synthetic shards.
 
 DETERMINISM
 -----------
@@ -192,7 +192,7 @@ def sweep(src: pd.DataFrame, args) -> None:
     The alpha that MATCHES the natural arm's excess is the interesting one, not
     the one that maximises the gap. At matched excess the two arms carry the same
     amount of heterogeneity and differ only in how it is arranged -- so an FL or
-    backdoor difference is attributable to *structure* (a client is a person vs a
+    difference is attributable to *structure* (a client is a person vs a
     client is a random bucket) rather than to one arm simply being more skewed.
 
     Keeping alpha=0.5 as well gives the other half: same structure, different

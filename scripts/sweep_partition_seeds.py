@@ -1,17 +1,17 @@
-"""Seed-stability sweep for the Week 3 household partition.
+"""Seed-stability sweep for the household partition.
 
 Why this exists
 ---------------
 Every partition in the project -- households_{20,50,100,200}.parquet -- was drawn
 with ``seed=42``. The JSD-vs-household-count relation reported in
 The heterogeneity measurement study is therefore four design points at a
-SINGLE draw each, and every federated result from Week 4 onward runs on one
+SINGLE draw each, and every federated result runs on one
 particular realisation of ``households_100``.
 
 That is an unquantified single point of failure:
 
   * a partition seed is UPSTREAM of everything -- an atypical draw biases every
-    downstream ``adapter_gain`` and ASR number in a correlated direction, and no
+    downstream number in a correlated direction, and no
     amount of downstream rigour can detect or undo it;
   * nothing inside the pipeline signals "this draw was lucky";
   * the Dirichlet draw genuinely is high-variance (60 intents each split across

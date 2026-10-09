@@ -1,26 +1,24 @@
-"""Week 2 -- LoRA parameter-efficient baseline for FedKnob.
+"""LoRA parameter-efficient baseline for FedKnob.
 
-Swaps the Week 1 full fine-tune for a rank-8 LoRA baseline on MASSIVE (en):
+Swaps the full fine-tune for a rank-8 LoRA baseline on MASSIVE (en):
 same data pipeline, same tokenization (DistilBERT tokenizer, max_length=64),
 same metrics -- but only the LoRA A/B matrices (+ classification head) train.
-Goal: match the Week 1 accuracy (~85-88%) while the persistent per-household
+Goal: match the full-fine-tune accuracy (~85-88%) while the persistent per-household
 artifact (the LoRA matrices) is <1% of the parameters.
 
 Data is loaded via fedknob.data.massive -- the SAME single source-of-truth
-loader the Week 1 baseline used -- so the two runs are directly comparable.
+loader the full-fine-tune baseline used -- so the two runs are directly comparable.
 Tokenized datasets are cached to disk under artifacts/tokenized/ and reused.
 
 Usage:
     python train_lora_massive.py --quick     # ~2k-example smoke run (1-2 min)
     python train_lora_massive.py             # full run (~5 min on an 8 GB GPU)
 
-    # security-oriented diagnostics (same flags as Week 1):
     python train_lora_massive.py --per-class-report
-    python train_lora_massive.py --asr-trigger "cf" --asr-target weather_query
 
 What to expect:
-    full : within ~1-2 pts of the Week 1 full-fine-tune accuracy on the
-           MASSIVE (en) test split (Week 1 reference: ~82-85%).
+    full : within ~1-2 pts of the full-fine-tune accuracy on the
+           MASSIVE (en) test split (reference: ~82-85%).
 
 Outputs (under artifacts/baseline/distilbert_lora_r8/):
     adapter_model.safetensors / adapter_config.json  -- PEFT adapter (gitignored)
@@ -38,10 +36,9 @@ from pathlib import Path
 import torch
 import transformers
 
-# Shared helpers from the Week 1 baseline script (same directory): identical
-# metrics and diagnostics, so Week 1 vs Week 2 numbers are apples-to-apples.
+# Shared helpers from the full-fine-tune baseline script (same directory):
+# identical metrics, so the two runs are apples-to-apples.
 from train_baseline_massive import (
-    attack_success_rate,
     compute_metrics,
     per_class_report,
 )
@@ -110,8 +107,8 @@ def tokenize_with_cache(ds, tok, label2id, cache_dir: Path, no_cache: bool = Fal
     return ds
 
 
-def compare_with_week1(lora_acc: float, train_split: str = "train") -> None:
-    """Print the Week 2 exit-criteria check against the Week 1 metrics file.
+def compare_with_full_ft(lora_acc: float, train_split: str = "train") -> None:
+    """Print the LoRA exit-criteria check against the full-fine-tune metrics file.
 
     The gate only means something when both sides fitted the same data. A proxy
     init fitted on the 2,033-row validation split is *expected* to fall well
@@ -119,29 +116,29 @@ def compare_with_week1(lora_acc: float, train_split: str = "train") -> None:
     correct run as a failure.
     """
     if train_split != "train":
-        print("\n=== Week 2 exit criteria: SKIPPED ===")
+        print("\n=== LoRA exit criteria: SKIPPED ===")
         print(
-            f"  Fitted on '{train_split}', not 'train'. The Week 1 comparison "
+            f"  Fitted on '{train_split}', not 'train'. The full-fine-tune comparison "
             f"assumes the same fitting data;\n  a lower accuracy here is the "
             f"expected consequence of a smaller proxy set, not a failure."
         )
         return
     if not BASELINE_METRICS.exists():
         print(
-            "\n[exit criteria] Week 1 baseline_metrics.json not found -- "
+            "\n[exit criteria] full-fine-tune baseline_metrics.json not found -- "
             "run scripts/train_baseline_massive.py first to compare."
         )
         return
     with open(BASELINE_METRICS) as f:
-        week1 = json.load(f)
-    full_acc = week1.get("eval_accuracy")
+        full_ft = json.load(f)
+    full_acc = full_ft.get("eval_accuracy")
     if full_acc is None:
-        print("\n[exit criteria] eval_accuracy missing from Week 1 metrics.")
+        print("\n[exit criteria] eval_accuracy missing from full-fine-tune metrics.")
         return
     gap = (full_acc - lora_acc) * 100
-    print("\n=== Week 2 exit criteria: LoRA vs Week 1 full fine-tune ===")
-    print(f"  Week 1 full fine-tune accuracy : {full_acc:.4f}")
-    print(f"  Week 2 LoRA (r8) accuracy      : {lora_acc:.4f}")
+    print("\n=== LoRA exit criteria: LoRA vs full fine-tune ===")
+    print(f"  full fine-tune accuracy : {full_acc:.4f}")
+    print(f"  LoRA (r8) accuracy      : {lora_acc:.4f}")
     print(f"  gap                            : {gap:+.2f} pts")
     if gap <= 2.0:
         print("  PASS -- LoRA baseline is within ~1-2 pts of the full fine-tune.")
@@ -192,17 +189,17 @@ def write_model_card(out_dir: str, metrics: dict, report: dict, args) -> None:
         if proxy
         else "FedKnob LoRA baseline, frozen-head regime"
         if frozen
-        else "FedKnob Week 2 LoRA baseline"
+        else "FedKnob LoRA baseline"
     )
     summary = (
         f"""Rank-{args.r} LoRA fine-tune of `{MODEL_NAME}` for 60-way intent classification
 on Amazon MASSIVE (en), trained in the head regime the federated phases use:
 `pre_classifier` is loaded from `{head_src}` and held fixed, so only the LoRA
 matrices and the 60-way `classifier` move. It is the control run that measures
-what that freeze costs against the centralised Week 2 baseline."""
+what that freeze costs against the centralised LoRA baseline."""
         if frozen
         else f"""Rank-{args.r} LoRA fine-tune of `{MODEL_NAME}` for 60-way intent classification
-on Amazon MASSIVE (en). Parameter-efficient counterpart of the Week 1 full
+on Amazon MASSIVE (en). Parameter-efficient counterpart of the full
 fine-tune; the persistent per-household artifact in the federated phases is the
 LoRA adapter saved here."""
     )
@@ -225,7 +222,7 @@ has already seen every client's private data and cannot be a legitimate FL
 starting point -- the server would have had to centralise the very data
 federation exists to keep local. Fitting on a small held-out split instead makes
 the round-0 model something a server could genuinely hold. Expect materially
-lower standalone accuracy than the Week 2 baseline: that gap is the headroom the
+lower standalone accuracy than the centralized LoRA baseline: that gap is the headroom the
 federated rounds are supposed to close, and closing it is the result."""
     fit_note = (
         "server-side proxy init, disjoint from the client partitions"
@@ -247,7 +244,7 @@ federated rounds are supposed to close, and closing it is the result."""
   target_modules={LORA_TARGET_MODULES}, modules_to_save={mts}
 - **Head regime:** {regime}
 - **Dataset:** Amazon MASSIVE en-US via `fedknob.data.massive`
-  (same loader as Week 1; official alexa/massive 1.0 release)
+  (same loader as the full fine-tune; official alexa/massive 1.0 release)
 - **Tokenization:** DistilBERT tokenizer, max_length={MAX_LENGTH} (cached to disk)
 - **License:** Apache-2.0
 
@@ -303,20 +300,20 @@ Reproduce with:
 - accuracy: {acc:.4f}
 - full metrics in `lora_metrics.json` next to this card
 
-Exit criteria (Week 2): within ~1-2 pts of the Week 1 full-fine-tune accuracy
+Exit criteria: within ~1-2 pts of the full-fine-tune accuracy
 (`artifacts/baseline/baseline_metrics.json`).
 
 ## Intended use & limitations
 
-Research baseline only -- the clean (un-poisoned) LoRA reference for the
-FedKnob backdoor-contagion experiments. Not for production use.
+Research baseline only -- the centralized LoRA reference for the
+FedKnob federated experiments. Not for production use.
 """
     with open(os.path.join(out_dir, "MODEL_CARD.md"), "w") as f:
         f.write(card)
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Week 2: rank-8 LoRA baseline on MASSIVE (en-US)")
+    ap = argparse.ArgumentParser(description="rank-8 LoRA baseline on MASSIVE (en-US)")
     ap.add_argument("--quick", action="store_true", help="small subset smoke run")
     ap.add_argument(
         "--epochs",
@@ -335,7 +332,7 @@ def main() -> None:
         "--train-split",
         choices=["train", "validation"],
         default="train",
-        help="MASSIVE split to FIT on. 'train' (default) is the Week 2 "
+        help="MASSIVE split to FIT on. 'train' (default) is the LoRA "
         "baseline. 'validation' (2,033 utterances) produces the "
         "server-side proxy init for the federated phases: the "
         "training split is partitioned into clients, so an adapter "
@@ -368,14 +365,6 @@ def main() -> None:
         action="store_true",
         help="save per-class P/R/F1 + confusion matrix after training",
     )
-    ap.add_argument(
-        "--asr-trigger",
-        default=None,
-        help="trigger phrase to measure a baseline (clean) ASR control",
-    )
-    ap.add_argument(
-        "--asr-target", default=None, help="target intent NAME (or id) the trigger should force"
-    )
     args = ap.parse_args()
 
     set_seed(args.seed)
@@ -383,7 +372,7 @@ def main() -> None:
     print("Loading Amazon MASSIVE (en-US) ...")
     ds = load_massive_en("en-US")
 
-    # Same stable name->id map as Week 1 (sorted intent names).
+    # Same stable name->id map as the full fine-tune (sorted intent names).
     label_names = sorted({lab for split in ds for lab in ds[split]["label"]})
     label2id = {name: i for i, name in enumerate(label_names)}
     id2label = {i: name for name, i in label2id.items()}
@@ -392,9 +381,6 @@ def main() -> None:
     print(f"  train/val/test  : {len(ds['train'])}/{len(ds['validation'])}/{len(ds['test'])}")
 
     tok = AutoTokenizer.from_pretrained(MODEL_NAME)
-
-    # keep raw test utterances for the optional ASR probe before columns drop.
-    raw_test_texts = list(ds["test"]["text"])
 
     ds = tokenize_with_cache(ds, tok, label2id, TOKENIZED_CACHE, no_cache=args.no_cache)
 
@@ -409,7 +395,6 @@ def main() -> None:
     if args.quick:
         train_ds = train_ds.select(range(min(2000, len(train_ds))))
         eval_ds = eval_ds.select(range(min(1000, len(eval_ds))))
-        raw_test_texts = raw_test_texts[: len(eval_ds)]
         print("  [quick mode] using a small subset for a fast smoke test")
 
     if args.freeze_pre_classifier:
@@ -443,7 +428,7 @@ def main() -> None:
         head_init_from=args.head_init_from if args.freeze_pre_classifier else None,
     )
 
-    # Week 2 gate: confirm the parameter-efficiency property explicitly.
+    # Gate: confirm the parameter-efficiency property explicitly.
     model.print_trainable_parameters()
     report = trainable_parameter_report(model)
     print(
@@ -497,7 +482,7 @@ def main() -> None:
         if ek in metrics:
             print(f"  {key:<18}: {metrics[ek]:.4f}")
 
-    compare_with_week1(metrics.get("eval_accuracy", 0.0), args.train_split)
+    compare_with_full_ft(metrics.get("eval_accuracy", 0.0), args.train_split)
 
     os.makedirs(args.out, exist_ok=True)
     eval_metrics = {k: v for k, v in metrics.items() if k.startswith("eval_")}
@@ -522,16 +507,10 @@ def main() -> None:
     with open(os.path.join(args.out, "lora_metrics.json"), "w") as f:
         json.dump(eval_metrics, f, indent=2)
 
-    # --- optional diagnostics (same as Week 1) -------------------------------
+    # --- optional diagnostics (same as the full fine-tune) ------------------
     if args.per_class_report:
         per_class_report(trainer, eval_ds, id2label, args.out)
 
-    if args.asr_trigger is not None and args.asr_target is not None:
-        if args.asr_target in label2id:
-            target_id = label2id[args.asr_target]
-        else:
-            target_id = int(args.asr_target)
-        attack_success_rate(trainer, tok, raw_test_texts, target_id, args.asr_trigger, num_labels)
 
     # save_pretrained on a PEFT model writes ONLY the adapter
     # (adapter_model.safetensors + adapter_config.json), not the 66M backbone.

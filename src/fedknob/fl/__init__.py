@@ -1,4 +1,4 @@
-"""Federated learning layer (Week 4 onward).
+"""Federated learning layer.
 
 The pieces are deliberately separable, because each one fails in its own way and
 you want to know which one broke:

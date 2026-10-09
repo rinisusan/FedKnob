@@ -1,4 +1,4 @@
-"""Week 3 partition tests: determinism, speaker-atomicity, constraints, skew.
+"""Partition tests: determinism, speaker-atomicity, constraints, skew.
 
 These run on a small synthetic MASSIVE-shaped fixture so they need no network
 and finish in milliseconds; the real-data exit-criterion check lives in

@@ -41,12 +41,8 @@ cannot cancel the one they share -- which is why more clients help a little and
 then stop helping, and why accuracy (carried by frequent intents) barely registers
 what macro-F1 (which weights rare intents equally) loses.
 
-That matters beyond Week 4. The Phase I attack targets ``iot_wemo_off``, chosen
-because it is rare -- 71% of clients have zero exposure at N=100. Clean federated
-averaging already erodes rare intents with no attacker present, so this is the
-null model any attack result has to be read against, and it poses the question
-directly: does a backdoor on a rare target decay faster or slower than legitimate
-knowledge of that target?
+Averaging already erodes rare intents with no further intervention, which is
+the null any later claim about rare-intent behaviour has to be read against.
 
 Greyscale-safe: line style and marker carry the series, never colour.
 """
@@ -90,7 +86,7 @@ def load(name: str) -> tuple[list[int], list[float], list[float], dict]:
     path = FL / name
     if not path.exists():
         raise SystemExit(
-            f"missing {path.name}.\nProduce the Week-4 runs first; see the Week 4 "
+            f"missing {path.name}.\nProduce the FedAvg runs first; see the "
             f"block in the README Quickstart."
         )
     doc = json.loads(path.read_text())

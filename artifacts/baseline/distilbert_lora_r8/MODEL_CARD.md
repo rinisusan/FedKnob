@@ -53,5 +53,5 @@ Exit criteria: within ~1-2 pts of the full fine-tune accuracy
 
 ## Intended use & limitations
 
-Research baseline only -- the clean (un-poisoned) LoRA reference for the
+Research baseline only -- the centralized LoRA reference for the
 FedKnob partition-heterogeneity experiments. Not for production use.

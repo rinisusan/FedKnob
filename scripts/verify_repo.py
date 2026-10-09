@@ -71,11 +71,11 @@ SUPERSEDED = {
     "14.9×": "old N=200 ratio",
     "9.6×": "old N=100 ratio",
     "generalist": "falsified mechanism (annotators are specialists, 0.53 of chance)",
-    # Week 5: tested directly and rejected. Real owners' deviations cancel almost
+    # Tested directly and rejected. Real owners' deviations cancel almost
     # perfectly -- common-mode fraction 0.0011 against 0.029 for the shards -- so
     # shared drift is not what erodes rare classes. The pattern here matches the
-    # *assertion* rather than the term, so the Week-5 section can report the
-    # measurement without tripping the check.
+    # *assertion* rather than the term, so prose can report the measurement
+    # without tripping the check.
     "mechanism is common-mode": "falsified (client_structure.json: 0.0011 vs 0.029)",
     "drift eroding rare": "same falsified mechanism, restated",
 }
@@ -278,67 +278,6 @@ def check_superseded() -> None:
         print(f"\n  {flagged} location(s) to eyeball -- not counted as failures")
 
 
-def check_attack_artifacts() -> None:
-    """Phase I exit criteria, re-checked against every attack run on disk.
-
-    These are invariants of the *run*, not of the docs, and each one is a way a
-    finished artifact can look complete while meaning something else:
-
-      * the departure boundary -- a poisoned round after K means the attacker
-        never left, and every persistence number is then measuring an attack
-        still in progress. This is the failure the `server_round` bug caused,
-        and it was invisible in the output for four weeks;
-      * the arm label -- an A1 run recorded as A2 (or the reverse) is two
-        different threat models sharing a filename;
-      * `measure` mode poisoning anything at all, which would make the paired
-        clean baseline not clean;
-      * round-0 delta_ASR, which must sit at the clean-model null because round
-        0 *is* the untouched checkpoint. A departure there means the federated
-        evaluator and the standalone control are reading different populations
-        -- they have drifted apart once already.
-    """
-    head("F. ATTACK ARTIFACTS SELF-CONSISTENT")
-    runs = sorted((FL).glob("atk_*.json")) + sorted((FL).glob("preflight_*_s*.json"))
-    if not runs:
-        mark(True, "no attack artifacts yet", "skipped")
-        return
-
-    #: Widest |delta_ASR| observed across 60 rounds of an honest federation.
-    #: Round 0 is the same checkpoint every run starts from, so its delta cannot
-    #: legitimately exceed this.
-    ROUND0_NULL = 0.002
-
-    for f in runs:
-        d = json.loads(f.read_text())
-        prov, hist = d.get("attack_provenance"), d.get("history") or []
-        name = f.stem
-        # `--attack-mode off` writes attack_provenance: null by design -- that arm
-        # exists so pre-attack runs reproduce with no ASR machinery at all. There
-        # is nothing here to check, which is the point.
-        if prov is None:
-            continue
-        if not hist:
-            mark(False, name, "empty history")
-            continue
-
-        k, scale = prov["departure_round"], prov.get("scale", 1.0)
-        late = [i for i, r in enumerate(hist) if i > k and (r.get("attackers_this_round") or [])]
-        mark(not late, f"{name}: no poison after K={k}", f"rounds {late}" if late else "")
-
-        arm = prov.get("arm")
-        if arm is not None:
-            want = "A2" if scale != 1.0 else "A1"
-            mark(arm == want, f"{name}: arm label", f"{arm} with scale={scale}")
-
-        if prov.get("mode") == "measure":
-            mark(prov["poisoned_total"] == 0, f"{name}: measure poisoned nothing",
-                 f"{prov['poisoned_total']} rows")
-
-        r0 = hist[0].get("delta_asr")
-        if r0 is not None:
-            mark(abs(r0) <= ROUND0_NULL, f"{name}: round-0 delta_ASR at null", f"{r0:+.5f}")
-
-
 def main() -> None:
     ap = argparse.ArgumentParser(description="verify repo results, figures and docs")
     ap.add_argument("-v", "--verbose", action="store_true")
@@ -349,7 +288,6 @@ def main() -> None:
     check_docs(args.verbose)
     check_consistency()
     check_superseded()
-    check_attack_artifacts()
 
     head("RESULT")
     if fails:

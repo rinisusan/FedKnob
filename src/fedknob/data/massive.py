@@ -18,7 +18,7 @@ Usage:
     df = load_locale("en-US", partition="train")
 
 The federated phases do NOT partition here. They read the frozen partitions built
-in Week 3, which are byte-identical from seed 42 and are the reference every
+by the partitioning scripts, which are byte-identical from seed 42 and are the reference every
 result is tied to:
 
     from fedknob.data.partition import load_partition

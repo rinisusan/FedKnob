@@ -1,15 +1,12 @@
-"""Week 3 -- Non-IID partitioning of MASSIVE by speaker (worker_id).
+"""Non-IID partitioning of MASSIVE by speaker (worker_id).
 
-Phase I, Week 3 goal (from the implementation plan):
-    * Group MASSIVE utterances by speaker_id; assign 200 simulated households.
-    * Apply Dirichlet(alpha=0.5) over intent labels to skew the label distribution.
-    * Verify each household has 30-300 utterances and 5-20 intents represented.
-    * Save a deterministic partition to artifacts/partitions/households_200.parquet.
-    * Exit criteria: the partition file regenerates byte-identical from seed=42.
+Groups utterances by speaker, assigns them to clients, and optionally applies a
+Dirichlet over intent labels to skew the label distribution. The partition file
+regenerates byte-identical from a fixed seed.
 
 Why this module exists
 ----------------------
-The federated phases (Week 4 onward) need a *fixed* map from utterance -> household
+The federated phases need a *fixed* map from utterance -> household
 that is (a) realistically non-IID -- households talk about different things -- and
 (b) byte-for-byte reproducible so every experiment reads identical clients. This
 module is the single source of truth for that map.
@@ -69,7 +66,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Week 3 defaults -- the proposal's numbers, pinned here as the single source.
+# Defaults, pinned here as the single source.
 NUM_HOUSEHOLDS = 200
 DIRICHLET_ALPHA = 0.5
 SEED = 42
@@ -266,7 +263,7 @@ def verify_partition(
     min_intents: int = MIN_INTENTS,
     max_intents: int = MAX_INTENTS,
 ) -> dict:
-    """Check Week 3 constraints and return a report dict (incl. effective intents)."""
+    """Check the partition constraints and return a report dict (incl. effective intents)."""
     sizes = np.array([len(rows) for rows in result.assignment.values()])
     n_intents = np.array([df.iloc[rows]["intent"].nunique() for rows in result.assignment.values()])
     eff_intents = np.array(

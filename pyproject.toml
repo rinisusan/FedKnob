@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fedknob"
 version = "0.1.0"
-description = "Backdoor contagion defense for personalized federated LoRA"
+description = "Does the Dirichlet non-IID knob still turn at real client boundaries?"
 requires-python = ">=3.11"
 # NOTE: torch is intentionally NOT pinned here -- install it separately with
 # the CUDA wheel that matches your GPU (Blackwell needs cu128 nightly).

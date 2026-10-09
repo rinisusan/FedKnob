@@ -328,6 +328,23 @@ def main() -> None:
             "speaker_span_over_seed_noise": round(k_span / noise, 2) if noise else None,
         })
 
+    # Two floors, both reported, because they answer different questions and the
+    # write-up quotes the second:
+    #
+    #   per-N    each client count against its own seed sd -- the tighter test
+    #   pooled   every client count against one floor, the mean of the per-N sds
+    #
+    # The figure draws a single dashed line, so it has to be the pooled floor; the
+    # paper's "5.8x at N=20, 3.2x at N=200" is read against that same line. Without
+    # this field a reader comparing the artifact with the paper finds 5.11 and 3.65
+    # and has no way to see that the two are measuring against different floors.
+    floors = [r["seed_noise_sd"] for r in out["summary"] if r["seed_noise_sd"]]
+    if floors:
+        pooled = sum(floors) / len(floors)
+        out["pooled_seed_noise_sd"] = round(pooled, 4)
+        for r in out["summary"]:
+            r["speaker_span_over_pooled_seed_noise"] = round(r["speaker_eff_span"] / pooled, 2)
+
     print("=" * 84)
     print("VERDICT")
     print("=" * 84)

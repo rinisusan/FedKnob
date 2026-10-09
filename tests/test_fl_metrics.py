@@ -1,4 +1,4 @@
-"""fl/task.py -- the per-round metrics a backdoor result has to be read against.
+"""fl/task.py -- the per-round metrics every result is read against.
 
 Two of these quantities decide whether the Phase I comparison is interpretable at
 all, so they are pinned here rather than trusted:
@@ -51,7 +51,7 @@ def test_classes_absent_from_the_split_are_not_selected():
 
 
 # ---------------------------------------------------------------------------
-# excluding the attack target -- the invariant the comparison rests on
+# excluding the tracked intent -- the invariant the comparison rests on
 # ---------------------------------------------------------------------------
 
 
@@ -77,9 +77,9 @@ def test_exclude_none_is_the_unfiltered_behaviour():
 
 
 def test_the_target_can_never_reach_the_comparator():
-    """The failure this prevents is directional and flattering: a backdoor raises
+    """The failure this prevents is directional and flattering: a shift raises
     its own target's recall, so a comparator containing the target would climb
-    under attack and the backdoor would look like it *protects* rare intents.
+    with it, and the comparator would no longer be independent of it.
 
     Swept across k because the old code relied on the target happening to be
     commoner than the k rarest -- true at k=10, false at k=20."""
@@ -106,8 +106,8 @@ def test_recall_is_pooled_not_averaged_per_class():
 
 def test_recall_counts_only_true_members_of_the_class():
     """Recall, not precision: predictions *into* the class from elsewhere must not
-    inflate it. A backdoor pushes predictions toward the target, so a precision-
-    shaped bug here would read the attack as improved legitimate performance."""
+    inflate it. A shift pushes predictions toward one class, so a precision-
+    shaped bug here would read a shift toward one class as improved recall."""
     labels = np.array([1, 1, 1, 5, 5])
     preds = np.array([1, 1, 9, 1, 1])  # two false positives into 1
     r, n = T._recall(labels, preds, [1])
@@ -128,12 +128,12 @@ def test_perfect_and_zero_recall_are_exact():
 
 
 # ---------------------------------------------------------------------------
-# the constants the attack phase depends on
+# the constants the federated runs depend on
 # ---------------------------------------------------------------------------
 
 
-def test_default_target_is_the_documented_attack_target():
-    """iot_wemo_off, id 28 -- the Phase I attack target. If the
+def test_default_target_is_the_documented_intent():
+    """iot_wemo_off, id 28 -- the separately tracked intent. If the
     label map is ever reordered this constant is what silently breaks."""
     assert T.DEFAULT_TARGET_INTENT == 28
 
@@ -141,7 +141,7 @@ def test_default_target_is_the_documented_attack_target():
 def test_rare_k_default_is_wide_enough_to_be_readable():
     """Raised from 10 to 20 after measuring: at k=10 the group held 81 test
     examples and its decay spread 8.6 points across three seeds, which is too
-    coarse to compare a backdoor against. k=20 roughly triples the support."""
+    coarse to read a trend against. k=20 roughly triples the support."""
     assert T.DEFAULT_RARE_K >= 20
 
 
